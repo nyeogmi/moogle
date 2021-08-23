@@ -75,7 +75,7 @@ inventory.mut_fwd().insert(jochen, stick);
 
 println!("Russell's items: {:?}", inventory.fwd().get(russell)); 
     // => beetle, pokemon_card
-println!("Jochen's items: {:?}", inventory.fwd().get(russell));  
+println!("Jochen's items: {:?}", inventory.fwd().get(jochen));  
     // => pizza, stick
 ```
 
