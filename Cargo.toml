@@ -1,6 +1,6 @@
 [package]
 name = "moogle"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Nyeogmi <economicsbat@gmail.com>"]
 description = "a data store for relational code"
 readme = "README.md"

@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "moogle"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "auto_enums",
 ]

@@ -41,14 +41,14 @@ println!("Jochen's items: {:?}", inventory.get(russell));
 
 However, there are some possible problems with this system.
 
-For one thing, a a naive implementation of multimaps might fail to take an item out of Russell's inventory once Jochen gets it:
+For one thing, a naive implementation of multimaps might fail to take an item out of Russell's inventory once Jochen gets it:
 
 ```rust
 inventory.insert(jochen, stick);
 
 println!("Russell's items: {:?}", inventory.get(russell)); 
     // => stick, beetle, pokemon_card
-println!("Jochen's items: {:?}", inventory.get(russell));  
+println!("Jochen's items: {:?}", inventory.get(jochen));  
     // => pizza, stick
 ```
 
