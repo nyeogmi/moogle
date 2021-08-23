@@ -3,8 +3,6 @@ use crate::methods::{EvictSetLike, ViewSetLike};
 
 use std::collections::{BTreeSet, BTreeMap};
 
-use auto_enums::auto_enum;
-
 pub(crate) struct ToSet<K, V>(BTreeMap<K, BTreeSet<V>>);
 
 impl<K: Id, V: Id> ToSet<K, V> {
@@ -95,12 +93,8 @@ impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for VSet<'a, K, V> {
         }
     }
 
-    #[auto_enum(Iterator)]
     fn iter(&self) -> Self::Iter { 
-        match self.0 {
-            None => std::iter::empty::<V>(),
-            Some(x) => x.iter().map(|v| *v)
-        }
+        self.0.into_iter().flat_map(|vs| vs.iter()).map(|v| *v)
     }
 }
 
@@ -121,11 +115,7 @@ impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for MSet<'a, K, V> {
         }
     }
 
-    #[auto_enum(Iterator)]
     fn iter(&'a self) -> Self::Iter { 
-        match self.1.0.get(&self.0) {
-            None => std::iter::empty::<V>(),
-            Some(x) => x.iter().map(|v| *v)
-        }
+        self.1.0.get(&self.0).into_iter().flat_map(|vs| vs.iter()).map(|v| *v)
     }
 }

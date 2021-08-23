@@ -3,8 +3,6 @@ use crate::methods::{EvictSetLike, ViewSetLike};
 
 use std::collections::BTreeMap;
 
-use auto_enums::auto_enum;
-
 pub(crate) struct ToOne<K: Id, V: Id>(BTreeMap<K, V>);
 
 impl<K: Id, V: Id> ToOne<K, V> {
@@ -115,11 +113,7 @@ impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for MOne<'a, K, V> {
         }
     }
 
-    #[auto_enum(Iterator)]
     fn iter(&'a self) -> Self::Iter { 
-        match self.1.0.get(&self.0) {
-            None => std::iter::empty::<V>(),
-            Some(x) => std::iter::once::<V>(*x),
-        }
+        self.1.0.get(&self.0).map(|x| *x).into_iter()
     }
 }

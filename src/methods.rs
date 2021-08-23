@@ -62,8 +62,6 @@ pub(crate) trait EvictSetLike<'a, K: Id, V: Id>: ViewSetLike<'a, V> {
 pub trait MapLike<'a, K: Id, V: Id>: ViewMapLike<'a, K, V> {
     fn insert(&mut self, k: K, v: V) -> Option<V>;
     fn expunge(&mut self, k: K) -> Option<V>;
-
-    // TODO: Iterators
 }
 
 pub trait MultiMapLike<'a, K: Id, V: Id>: ViewMultiMapLike<'a, K, V> {
@@ -73,6 +71,4 @@ pub trait MultiMapLike<'a, K: Id, V: Id>: ViewMultiMapLike<'a, K, V> {
     fn get_mut(&'a mut self, k: K) -> Self::MMulti;
     fn insert(&mut self, k: K, v: V) -> Option<V>;  // note: only evicts if the inserted item was an exact duplicate
     fn expunge(&mut self, k: K) -> Self::MExpunge;
-
-    // TODO: Iterators
 }
