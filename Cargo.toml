@@ -1,6 +1,6 @@
 [package]
 name = "moogle"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Nyeogmi <economicsbat@gmail.com>"]
 description = "a bi-multimap for relational code"
 readme = "README.md"
