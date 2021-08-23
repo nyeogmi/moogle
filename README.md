@@ -1,8 +1,8 @@
 # Moogle
 
-`moogle` is a tool for junction tables in Rust. 
+`moogle` is a relational data store in Rust. Specifically, it does junction tables. 
 
-Conceptually, it's an alternative to `HashMap` with a lot of desirable properties for games and simulations.
+Operationally, it's an alternative to `HashMap` with a lot of desirable properties for games and simulations.
 
 I haven't profiled it yet, but based on its implementation (a very thin layer over `BTreeMap`) I'd expect it to be within an order of magnitude of `BTreeMap` in all respects. 
 
