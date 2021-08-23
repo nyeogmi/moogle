@@ -1,8 +1,8 @@
-use crate::relations::keybound::Id;
+use crate::keybound::Id;
 
-use crate::relations::interfaces::{ViewMapLike, MapLike};
+use crate::methods::{ViewMapLike, MapLike};
 
-use crate::relations::structures::{ToOne};
+use crate::structures::{ToOne};
 
 // == Data structure ==
 pub struct OneToOne<A: Id, B: Id> {
@@ -117,10 +117,7 @@ impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for VBwd<'a, A, B> {
     type Keys = impl 'a+Iterator<Item=B>;
     type Values = impl 'a+Iterator<Item=A>;
 
-    fn get(&self, b: B) -> Option<A> { 
-        let gb = self.0.bwd.get(b);
-        gb.as_option() 
-    }
+    fn get(&self, b: B) -> Option<A> { self.0.bwd.get(b).as_option() }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
     fn len(&self) -> usize { self.0.bwd.len() }
 

@@ -1,10 +1,10 @@
-use crate::relations::keybound::Id;
+use crate::keybound::Id;
 
-use crate::relations::interfaces::{ViewMultiMapLike, MultiMapLike, ViewMapLike, MapLike};
-use crate::relations::interfaces::{ViewSetLike, SetLike, EvictSetLike};
+use crate::methods::{ViewMultiMapLike, MultiMapLike, ViewMapLike, MapLike};
+use crate::methods::{ViewSetLike, SetLike, EvictSetLike};
 
-use crate::relations::structures::{ToOne};
-use crate::relations::structures::{ToSet, VSet, MSet};
+use crate::structures::{ToOne};
+use crate::structures::{ToSet, VSet, MSet};
 
 use std::collections::BTreeSet;
 

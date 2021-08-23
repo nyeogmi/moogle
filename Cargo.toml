@@ -1,6 +1,14 @@
 [package]
-name = "relations"
-version = "0.1.0"
+name = "moogle"
+version = "0.0.1"
+authors = ["Nyeogmi <economicsbat@gmail.com>"]
+description = "a bi-multimap for relational code"
+readme = "README.md"
+homepage = "https://github.com/Nyeogmi/moogle"
+repository = "https://github.com/Nyeogmi/moogle"
+license = "MIT OR Apache-2.0"
+keywords = ["gamedev", "database"]
+categories = ["database-implementations", "data-structures", "game-development", "memory-management"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

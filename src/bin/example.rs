@@ -1,8 +1,4 @@
-#![feature(min_type_alias_impl_trait)]
-pub mod relations;
-
-use relations::*;
-use relations::interfaces::*;
+use moogle::*;
 
 fn main() {
     let mut l: SetToOne::<char, usize> = SetToOne::new();
@@ -17,7 +13,7 @@ fn main() {
     l.mut_fwd().insert('y', 1001);
     l.mut_fwd().insert('z', 1001);
 
-    println!("Hello! {:?}", l);
+    println!("Hello!!! {:?}", l);
 
     for i in l.bwd().get(456).iter() {
         println!("Item: {}", i);

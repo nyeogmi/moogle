@@ -1,10 +1,10 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 
-use crate::relations::keybound::Id;
+use crate::keybound::Id;
 
-use crate::relations::structures::{ToOne, ToSet};
-use crate::relations::interfaces::ViewSetLike;
+use crate::structures::{ToOne, ToSet};
+use crate::methods::ViewSetLike;
 
 
 fn to_one<A: Debug+Id, B: Debug+Id>(f: &mut Formatter<'_>, t: &ToOne<A, B>) -> fmt::Result {

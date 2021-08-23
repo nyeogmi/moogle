@@ -1,4 +1,6 @@
-use crate::relations::keybound::Id;
+// named "methods" instead of "traits" to convey that you probably wanna import this if you'd like access to the methods
+
+use crate::keybound::Id;
 
 // == Readers ==
 pub trait ViewSetLike<'a, T: Id> {

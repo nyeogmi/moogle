@@ -1,8 +1,7 @@
-use crate::relations::keybound::Id;
+use crate::keybound::Id;
+use crate::methods::{EvictSetLike, ViewSetLike};
 
 use std::collections::{BTreeSet, BTreeMap};
-
-use super::super::interfaces::{EvictSetLike, ViewSetLike};
 
 use auto_enums::auto_enum;
 
