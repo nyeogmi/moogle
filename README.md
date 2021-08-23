@@ -35,7 +35,7 @@ inventory.insert(jochen, pizza);
 
 println!("Russell's items: {:?}", inventory.get(russell)); 
     // => stick, beetle, pokemon_card
-println!("Jochen's items: {:?}", inventory.get(russell));  
+println!("Jochen's items: {:?}", inventory.get(jochen));  
     // => pizza
 ```
 
