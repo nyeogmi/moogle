@@ -9,8 +9,8 @@ use std::collections::BTreeSet;
 
 // == Data structure ==
 pub struct SetToSet<A: Id, B: Id> {
-    fwd: ToSet<A, B>,
-    bwd: ToSet<B, A>,
+    pub(crate) fwd: ToSet<A, B>,
+    pub(crate) bwd: ToSet<B, A>,
 }
 
 // == Constructor et al ==
@@ -21,15 +21,15 @@ impl<A: Id, B: Id> SetToSet<A, B> {
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(&'a mut SetToSet<A, B>);
-pub struct MFwdSet<'a, A: Id, B: Id>(MSet<'a, A, B>, &'a mut ToSet<B, A>);
-pub struct MBwd<'a, A: Id, B: Id>(&'a mut SetToSet<A, B>);
-pub struct MBwdSet<'a, A: Id, B: Id>(MSet<'a, B, A>, &'a mut ToSet<A, B>);
+pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut SetToSet<A, B>);
+pub struct MFwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, A, B>, &'a mut ToSet<B, A>);
+pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut SetToSet<A, B>);
+pub struct MBwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, B, A>, &'a mut ToSet<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(&'a SetToSet<A, B>);
-pub struct VFwdSet<'a, A: Id, B: Id>(VSet<'a, A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(&'a SetToSet<A, B>);
-pub struct VBwdSet<'a, A: Id, B: Id>(VSet<'a, B, A>);
+pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a SetToSet<A, B>);
+pub struct VFwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a SetToSet<A, B>);
+pub struct VBwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, B, A>);
 
 // == Accessors ==
 impl<A: Id, B: Id> SetToSet<A, B> {
@@ -69,22 +69,40 @@ impl<'a, A: Id, B: Id> MultiMapLike<'a, A, B> for MFwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for MFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
+    type Items = impl 'a+Iterator<Item=(A, B)>;
+    type Keys = impl 'a+Iterator<Item=A>;
+    type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
+    type Values = impl 'a+Iterator<Item=B>;
 
     fn get(&self, a: A) -> VFwdSet<'_, A, B> { VFwdSet(self.0.fwd.get(a)) }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
+
+    fn items(&'a self) -> Self::Items { self.0.fwd.items() }
+    fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
+    fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
 }
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
+    type Items = impl 'a+Iterator<Item=(A, B)>;
+    type Keys = impl 'a+Iterator<Item=A>;
+    type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
+    type Values = impl 'a+Iterator<Item=B>;
 
     fn get(&self, a: A) -> VFwdSet<'_, A, B> { VFwdSet(self.0.fwd.get(a)) }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
+
+    fn items(&'a self) -> Self::Items { self.0.fwd.items() }
+    fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
+    fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
 }
 
 // == Forward (sets) ==
-impl<'a, A: Id, B: Id> SetLike<B> for MFwdSet<'a, A, B> {
+impl<'a, A: Id, B: Id> SetLike<'a, B> for MFwdSet<'a, A, B> {
     fn insert(&mut self, b: B) -> Option<B> { 
         let alt = &mut self.1;
         let result = self.0.insert(b.clone(), move |k, v| { alt.remove(v, k, |_, _|{}); });
@@ -101,14 +119,22 @@ impl<'a, A: Id, B: Id> SetLike<B> for MFwdSet<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewSetLike<B> for MFwdSet<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewSetLike<'a, B> for MFwdSet<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=B>;
+
     fn contains(&self, b: B) -> bool { self.0.contains(b) }
     fn len(&self) -> usize { self.0.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.iter() }
 }
 
-impl<'a, A: Id, B: Id> ViewSetLike<B> for VFwdSet<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewSetLike<'a, B> for VFwdSet<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=B>;
+
     fn contains(&self, b: B) -> bool { self.0.contains(b) }
     fn len(&self) -> usize { self.0.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.iter() }
 }
 
 // == Backward ==
@@ -137,22 +163,40 @@ impl<'a, A: Id, B: Id> MultiMapLike<'a, B, A> for MBwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for MBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
+    type Items = impl 'a+Iterator<Item=(B, A)>;
+    type Keys = impl 'a+Iterator<Item=B>;
+    type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
+    type Values = impl 'a+Iterator<Item=A>;
 
     fn get(&self, b: B) -> VBwdSet<'_, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
-    fn len(&self) -> usize { self.0.fwd.len() }
+    fn len(&self) -> usize { self.0.bwd.len() }
+
+    fn items(&'a self) -> Self::Items { self.0.bwd.items() }
+    fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
+    fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
 }
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for VBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
+    type Items = impl 'a+Iterator<Item=(B, A)>;
+    type Keys = impl 'a+Iterator<Item=B>;
+    type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
+    type Values = impl 'a+Iterator<Item=A>;
 
     fn get(&self, b: B) -> VBwdSet<'_, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
-    fn len(&self) -> usize { self.0.fwd.len() }
+    fn len(&self) -> usize { self.0.bwd.len() }
+
+    fn items(&'a self) -> Self::Items { self.0.bwd.items() }
+    fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
+    fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
 }
 
 // == Backward (sets) ==
-impl<'a, A: Id, B: Id> SetLike<A> for MBwdSet<'a, A, B> {
+impl<'a, A: Id, B: Id> SetLike<'a, A> for MBwdSet<'a, A, B> {
     fn insert(&mut self, a: A) -> Option<A> { 
         let alt = &mut self.1;
         let result = self.0.insert(a.clone(), move |k, v| { alt.remove(v, k, |_, _|{}); });
@@ -169,12 +213,20 @@ impl<'a, A: Id, B: Id> SetLike<A> for MBwdSet<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewSetLike<A> for MBwdSet<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewSetLike<'a, A> for MBwdSet<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=A>;
+
     fn contains(&self, a: A) -> bool { self.0.contains(a) }
     fn len(&self) -> usize { self.0.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.iter() }
 }
 
-impl<'a, A: Id, B: Id> ViewSetLike<A> for VBwdSet<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewSetLike<'a, A> for VBwdSet<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=A>;
+
     fn contains(&self, a: A) -> bool { self.0.contains(a) }
     fn len(&self) -> usize { self.0.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.iter() }
 }

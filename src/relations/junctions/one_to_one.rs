@@ -6,15 +6,23 @@ use crate::relations::structures::{ToOne};
 
 // == Data structure ==
 pub struct OneToOne<A: Id, B: Id> {
-    fwd: ToOne<A, B>,
-    bwd: ToOne<B, A>,
+    pub(crate) fwd: ToOne<A, B>,
+    pub(crate) bwd: ToOne<B, A>,
 }
 
-pub struct MFwd<'a, A: Id, B: Id>(&'a mut OneToOne<A, B>);
-pub struct MBwd<'a, A: Id, B: Id>(&'a mut OneToOne<A, B>);
+// == Constructor et al ==
+impl<A: Id, B: Id> OneToOne<A, B> {
+    pub fn new() -> OneToOne<A, B> {
+        OneToOne { fwd: ToOne::new(), bwd: ToOne::new() }
+    }
+}
 
-pub struct VFwd<'a, A: Id, B: Id>(&'a OneToOne<A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(&'a OneToOne<A, B>);
+// == More structs ==
+pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut OneToOne<A, B>);
+pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut OneToOne<A, B>);
+
+pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a OneToOne<A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a OneToOne<A, B>);
 
 // == Accessors ==
 impl<A: Id, B: Id> OneToOne<A, B> {
@@ -46,15 +54,31 @@ impl<'a, A: Id, B: Id> MapLike<'a, A, B> for MFwd<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewMapLike<'a, A, B> for MFwd<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=(A, B)>;
+    type Keys = impl 'a+Iterator<Item=A>;
+    type Values = impl 'a+Iterator<Item=B>;
+
     fn get(&self, a: A) -> Option<B> { self.0.fwd.get(a).as_option() }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.fwd.iter() }
+    fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
+    fn values(&'a self) -> Self::Values { self.0.fwd.values() }
 }
 
 impl<'a, A: Id, B: Id> ViewMapLike<'a, A, B> for VFwd<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=(A, B)>;
+    type Keys = impl 'a+Iterator<Item=A>;
+    type Values = impl 'a+Iterator<Item=B>;
+
     fn get(&self, a: A) -> Option<B> { self.0.fwd.get(a).as_option() }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.fwd.iter() }
+    fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
+    fn values(&'a self) -> Self::Values { self.0.fwd.values() }
 }
 
 // == Backward ==
@@ -75,18 +99,34 @@ impl<'a, A: Id, B: Id> MapLike<'a, B, A> for MBwd<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for MBwd<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=(B, A)>;
+    type Keys = impl 'a+Iterator<Item=B>;
+    type Values = impl 'a+Iterator<Item=A>;
+
     fn get(&self, b: B) -> Option<A> { self.0.bwd.get(b).as_option() }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
-    fn len(&self) -> usize { self.0.fwd.len() }
+    fn len(&self) -> usize { self.0.bwd.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.bwd.iter() }
+    fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
+    fn values(&'a self) -> Self::Values { self.0.bwd.values() }
 }
 
 impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for VBwd<'a, A, B> {
+    type Iter = impl 'a+Iterator<Item=(B, A)>;
+    type Keys = impl 'a+Iterator<Item=B>;
+    type Values = impl 'a+Iterator<Item=A>;
+
     fn get(&self, b: B) -> Option<A> { 
         let gb = self.0.bwd.get(b);
         gb.as_option() 
     }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
-    fn len(&self) -> usize { self.0.fwd.len() }
+    fn len(&self) -> usize { self.0.bwd.len() }
+
+    fn iter(&'a self) -> Self::Iter { self.0.bwd.iter() }
+    fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
+    fn values(&'a self) -> Self::Values { self.0.bwd.values() }
 }
 
 // == TODO: Re-export setlike views of VFwd et al ==

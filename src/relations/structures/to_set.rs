@@ -4,7 +4,20 @@ use std::collections::{BTreeSet, BTreeMap};
 
 use super::super::interfaces::{EvictSetLike, ViewSetLike};
 
+use auto_enums::auto_enum;
+
 pub(crate) struct ToSet<K, V>(BTreeMap<K, BTreeSet<V>>);
+
+impl<K: Id, V: Id> ToSet<K, V> {
+    pub fn items<'a>(&'a self) -> impl 'a+Iterator<Item=(K, V)> { 
+        self.0.iter().flat_map(|(k, vs)|
+            vs.iter().map(move |v| (*k, *v))
+        )
+    }
+    pub fn keys<'a>(&'a self) -> impl 'a+Iterator<Item=K> { self.0.keys().map(|k| *k) }
+    pub fn sets<'a>(&'a self) -> impl 'a+Iterator<Item=(K, &BTreeSet<V>)> { self.0.iter().map(|(k, v)| (*k, v) ) }
+    pub fn values<'a>(&'a self) -> impl 'a+Iterator<Item=&BTreeSet<V>> { self.0.values() }
+}
 
 // TODO: Track _total_ len (as in, number of pairs)
 impl<'a, K: Id, V: Id> ToSet<K, V> {
@@ -56,7 +69,7 @@ impl<'a, K: Id, V: Id> MSet<'a, K, V> {
     pub fn key(&self) -> K { self.0 }
 }
 
-impl<'a, K: Id, V: Id> EvictSetLike<K, V> for MSet<'a, K, V> {
+impl<'a, K: Id, V: Id> EvictSetLike<'a, K, V> for MSet<'a, K, V> {
     fn insert(&mut self, v: V, on_evict: impl FnOnce(K, V)) -> Option<V> { 
         self.1.insert(self.0, v, on_evict)
     }
@@ -67,7 +80,9 @@ impl<'a, K: Id, V: Id> EvictSetLike<K, V> for MSet<'a, K, V> {
 }
 
 
-impl<'a, K: Id, V: Id> ViewSetLike<V> for VSet<'a, K, V> {
+impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for VSet<'a, K, V> {
+    type Iter = impl 'a+Iterator<Item=V>;
+
     fn contains(&self, v: V) -> bool {
         match self.0 {
             None => false,
@@ -81,9 +96,19 @@ impl<'a, K: Id, V: Id> ViewSetLike<V> for VSet<'a, K, V> {
             Some(x) => x.len(),
         }
     }
+
+    #[auto_enum(Iterator)]
+    fn iter(&self) -> Self::Iter { 
+        match self.0 {
+            None => std::iter::empty::<V>(),
+            Some(x) => x.iter().map(|v| *v)
+        }
+    }
 }
 
-impl<'a, K: Id, V: Id> ViewSetLike<V> for MSet<'a, K, V> {
+impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for MSet<'a, K, V> {
+    type Iter = impl Iterator<Item=V>;
+
     fn contains(&self, v: V) -> bool { 
         match self.1.0.get(&self.0) {
             None => false,
@@ -95,6 +120,14 @@ impl<'a, K: Id, V: Id> ViewSetLike<V> for MSet<'a, K, V> {
         match self.1.0.get(&self.0) {
             None => 0,
             Some(x) => x.len(),
+        }
+    }
+
+    #[auto_enum(Iterator)]
+    fn iter(&'a self) -> Self::Iter { 
+        match self.1.0.get(&self.0) {
+            None => std::iter::empty::<V>(),
+            Some(x) => x.iter().map(|v| *v)
         }
     }
 }

@@ -4,7 +4,15 @@ use std::collections::BTreeMap;
 
 use super::super::interfaces::{EvictSetLike, ViewSetLike};
 
-pub(crate) struct ToOne<K, V>(BTreeMap<K, V>);
+use auto_enums::auto_enum;
+
+pub(crate) struct ToOne<K: Id, V: Id>(BTreeMap<K, V>);
+
+impl<K: Id, V: Id> ToOne<K, V> {
+    pub fn keys<'a>(&'a self) -> impl 'a+Iterator<Item=K> { self.0.keys().map(|k| *k) }
+    pub fn iter<'a>(&'a self) -> impl 'a+Iterator<Item=(K, V)> { self.0.iter().map(|(k, v)| (*k, *v) ) }
+    pub fn values<'a>(&'a self) -> impl 'a+Iterator<Item=V> { self.0.values().map(|v| *v ) }
+}
 
 impl<'a, K: Id, V: Id> ToOne<K, V> {
     pub fn new() -> Self { ToOne(BTreeMap::new()) }
@@ -59,7 +67,7 @@ impl <'a, K: Id, V: Id> VOne<'a, K, V> {
     pub fn as_option(&self) -> Option<V> { self.0 }
 }
 
-impl<'a, K: Id, V: Id> EvictSetLike<K, V> for MOne<'a, K, V> {
+impl<'a, K: Id, V: Id> EvictSetLike<'a, K, V> for MOne<'a, K, V> {
     fn insert(&mut self, v: V, on_evict: impl FnOnce(K, V)) -> Option<V> { 
         self.1.insert(self.0, v, on_evict)
     }
@@ -69,8 +77,9 @@ impl<'a, K: Id, V: Id> EvictSetLike<K, V> for MOne<'a, K, V> {
     }
 }
 
+impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for VOne<'a, K, V> {
+    type Iter = impl 'a+Iterator<Item=V>;
 
-impl<'a, K: Id, V: Id> ViewSetLike<V> for VOne<'a, K, V> {
     fn contains(&self, v: V) -> bool {
         match self.0 {
             None => false,
@@ -84,9 +93,15 @@ impl<'a, K: Id, V: Id> ViewSetLike<V> for VOne<'a, K, V> {
             Some(_) => 1,
         }
     }
+
+    fn iter(&'a self) -> Self::Iter { 
+        self.0.iter().map(|v| *v)
+    }
 }
 
-impl<'a, K: Id, V: Id> ViewSetLike<V> for MOne<'a, K, V> {
+impl<'a, K: Id, V: Id> ViewSetLike<'a, V> for MOne<'a, K, V> {
+    type Iter = impl 'a+Iterator<Item=V>;
+
     fn contains(&self, v: V) -> bool { 
         match self.1.0.get(&self.0) {
             None => false,
@@ -98,6 +113,14 @@ impl<'a, K: Id, V: Id> ViewSetLike<V> for MOne<'a, K, V> {
         match self.1.0.get(&self.0) {
             None => 0,
             Some(_) => 1,
+        }
+    }
+
+    #[auto_enum(Iterator)]
+    fn iter(&'a self) -> Self::Iter { 
+        match self.1.0.get(&self.0) {
+            None => std::iter::empty::<V>(),
+            Some(x) => std::iter::once::<V>(*x),
         }
     }
 }
