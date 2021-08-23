@@ -1,8 +1,8 @@
 [package]
 name = "moogle"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Nyeogmi <economicsbat@gmail.com>"]
-description = "a bi-multimap for relational code"
+description = "a data store for relational code"
 readme = "README.md"
 homepage = "https://github.com/nyeogmi/moogle"
 repository = "https://github.com/nyeogmi/moogle"
