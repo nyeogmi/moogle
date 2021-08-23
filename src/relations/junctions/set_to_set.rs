@@ -1,36 +1,43 @@
 use crate::relations::keybound::Id;
 
-use crate::relations::interfaces::{ViewMultiMapLike, MultiMapLike, ViewMapLike, MapLike};
+use crate::relations::interfaces::{ViewMultiMapLike, MultiMapLike};
 use crate::relations::interfaces::{ViewSetLike, SetLike, EvictSetLike};
 
-use crate::relations::structures::{ToOne};
 use crate::relations::structures::{ToSet, VSet, MSet};
 
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct OneToSet<A: Id, B: Id> {
+pub struct SetToSet<A: Id, B: Id> {
     fwd: ToSet<A, B>,
     bwd: ToSet<B, A>,
 }
 
-pub struct MFwd<'a, A: Id, B: Id>(&'a mut OneToSet<A, B>);
+// == Constructor et al ==
+impl<A: Id, B: Id> SetToSet<A, B> {
+    pub fn new() -> SetToSet<A, B> {
+        SetToSet { fwd: ToSet::new(), bwd: ToSet::new() }
+    }
+}
+
+// == More structs ==
+pub struct MFwd<'a, A: Id, B: Id>(&'a mut SetToSet<A, B>);
 pub struct MFwdSet<'a, A: Id, B: Id>(MSet<'a, A, B>, &'a mut ToSet<B, A>);
-pub struct MBwd<'a, A: Id, B: Id>(&'a mut OneToSet<A, B>);
+pub struct MBwd<'a, A: Id, B: Id>(&'a mut SetToSet<A, B>);
 pub struct MBwdSet<'a, A: Id, B: Id>(MSet<'a, B, A>, &'a mut ToSet<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(&'a OneToSet<A, B>);
+pub struct VFwd<'a, A: Id, B: Id>(&'a SetToSet<A, B>);
 pub struct VFwdSet<'a, A: Id, B: Id>(VSet<'a, A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(&'a OneToSet<A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(&'a SetToSet<A, B>);
 pub struct VBwdSet<'a, A: Id, B: Id>(VSet<'a, B, A>);
 
 // == Accessors ==
-impl<A: Id, B: Id> OneToSet<A, B> {
+impl<A: Id, B: Id> SetToSet<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> OneToSet<A, B> {
+impl<A: Id, B: Id> SetToSet<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 

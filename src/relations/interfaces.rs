@@ -36,7 +36,7 @@ pub trait SetLike<T: Id>: ViewSetLike<T> {
     fn remove(&mut self, t: T) -> Option<T>;
 } 
 
-pub trait EvictSetLike<K: Id, V: Id>: ViewSetLike<V> {
+pub(crate) trait EvictSetLike<K: Id, V: Id>: ViewSetLike<V> {
     fn insert(&mut self, v: V, on_evict: impl FnOnce(K, V)) -> Option<V>;  // return the evicted item if one was evicted
     fn remove(&mut self, v: V, on_evict: impl FnOnce(K, V)) -> Option<V>;
 } 

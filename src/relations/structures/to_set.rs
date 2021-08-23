@@ -4,10 +4,12 @@ use std::collections::{BTreeSet, BTreeMap};
 
 use super::super::interfaces::{EvictSetLike, ViewSetLike};
 
-pub struct ToSet<K, V>(BTreeMap<K, BTreeSet<V>>);
+pub(crate) struct ToSet<K, V>(BTreeMap<K, BTreeSet<V>>);
 
 // TODO: Track _total_ len (as in, number of pairs)
 impl<'a, K: Id, V: Id> ToSet<K, V> {
+    pub fn new() -> Self { ToSet(BTreeMap::new()) }
+
     pub fn insert(&mut self, key: K, value: V, _on_evict: impl FnOnce(K, V)) -> Option<V> { 
         let existing = self.0.entry(key).or_insert_with(|| BTreeSet::new()).insert(value);
 
@@ -47,8 +49,8 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
     pub fn len(&self) -> usize { self.0.len() }
 }
 
-pub struct VSet<'a, K: Id, V: Id>(Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
-pub struct MSet<'a, K: Id, V: Id>(K, &'a mut ToSet<K, V>);  
+pub(crate) struct VSet<'a, K: Id, V: Id>(Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
+pub(crate) struct MSet<'a, K: Id, V: Id>(K, &'a mut ToSet<K, V>);  
 
 impl<'a, K: Id, V: Id> MSet<'a, K, V> {
     pub fn key(&self) -> K { self.0 }

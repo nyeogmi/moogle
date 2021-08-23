@@ -14,6 +14,14 @@ pub struct OneToSet<A: Id, B: Id> {
     bwd: ToOne<B, A>,
 }
 
+// == Constructor et al ==
+impl<A: Id, B: Id> OneToSet<A, B> {
+    pub fn new() -> OneToSet<A, B> {
+        OneToSet { fwd: ToSet::new(), bwd: ToOne::new() }
+    }
+}
+
+// == More structs ==
 pub struct MFwd<'a, A: Id, B: Id>(&'a mut OneToSet<A, B>);
 pub struct MFwdSet<'a, A: Id, B: Id>(MSet<'a, A, B>, &'a mut ToOne<B, A>);
 pub struct MBwd<'a, A: Id, B: Id>(&'a mut OneToSet<A, B>);

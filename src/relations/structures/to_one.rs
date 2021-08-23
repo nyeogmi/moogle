@@ -1,12 +1,14 @@
 use crate::relations::keybound::Id;
 
-use std::collections::{BTreeSet, BTreeMap};
+use std::collections::BTreeMap;
 
 use super::super::interfaces::{EvictSetLike, ViewSetLike};
 
-pub struct ToOne<K, V>(BTreeMap<K, V>);
+pub(crate) struct ToOne<K, V>(BTreeMap<K, V>);
 
 impl<'a, K: Id, V: Id> ToOne<K, V> {
+    pub fn new() -> Self { ToOne(BTreeMap::new()) }
+
     pub fn insert(&mut self, key: K, value: V, on_evict: impl FnOnce(K, V)) -> Option<V> { 
         match self.0.get_mut(&key) {
             Some(x) => {
@@ -45,22 +47,16 @@ impl<'a, K: Id, V: Id> ToOne<K, V> {
         }
     }
 
-    pub fn get(&'a self, key: K) -> VOne<'a, K, V> { VOne(self.0.get(&key).map(|x| *x), ::std::marker::PhantomData) }
-    pub fn get_mut(&'a mut self, key: K) -> MOne<'a, K, V> { MOne(key, self) }
+    pub fn get(&self, key: K) -> VOne<'a, K, V> { VOne(self.0.get(&key).map(|x| *x), ::std::marker::PhantomData) }
     pub fn contains_key(&self, key: K) -> bool { self.0.contains_key(&key) }
     pub fn len(&self) -> usize { self.0.len() }
 }
 
-pub struct VOne<'a, K: Id, V: Id>(Option<V>, ::std::marker::PhantomData<&'a *const K>);
-pub struct MOne<'a, K: Id, V: Id>(K, &'a mut ToOne<K, V>);  
+pub(crate) struct VOne<'a, K: Id, V: Id>(Option<V>, ::std::marker::PhantomData<&'a *const K>);
+pub(crate) struct MOne<'a, K: Id, V: Id>(K, &'a mut ToOne<K, V>);  
 
 impl <'a, K: Id, V: Id> VOne<'a, K, V> {
     pub fn as_option(&self) -> Option<V> { self.0 }
-}
-
-impl<'a, K: Id, V: Id> MOne<'a, K, V> {
-    pub fn key(&self) -> K { self.0 }
-    // pub fn as_option(&'a mut self) -> Option<&'a mut V> { self.1.0.entry(self.0.clone()).get_mut }
 }
 
 impl<'a, K: Id, V: Id> EvictSetLike<K, V> for MOne<'a, K, V> {
@@ -85,7 +81,7 @@ impl<'a, K: Id, V: Id> ViewSetLike<V> for VOne<'a, K, V> {
     fn len(&self) -> usize { 
         match self.0 {
             None => 0,
-            Some(x) => 1,
+            Some(_) => 1,
         }
     }
 }
@@ -101,7 +97,7 @@ impl<'a, K: Id, V: Id> ViewSetLike<V> for MOne<'a, K, V> {
     fn len(&self) -> usize { 
         match self.1.0.get(&self.0) {
             None => 0,
-            Some(x) => 1,
+            Some(_) => 1,
         }
     }
 }
