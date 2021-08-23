@@ -11,7 +11,7 @@ I haven't profiled it yet, but based on its implementation (a very thin layer ov
 Let's say you're building a game where NPCs collect items and you want to track what items are in each NPC's inventory:
 
 ```rust
-let mut inventory: HashMap<NPC, Vec<Item>> = BTreeMap::new()
+let mut inventory: HashMap<NPC, Vec<Item>> = BTreeMap::new();
 ```
 
 This representation has the following problems:
@@ -22,7 +22,7 @@ This representation has the following problems:
 Many people deal with these two problems by creating a MultiMap type:
 
 ```rust
-let mut inventory: MultiMap<NPC, Item> = MultiMap::new()
+let mut inventory: MultiMap<NPC, Item> = MultiMap::new();
 ```
 
 Some example code in this system might look like this:
@@ -44,7 +44,7 @@ However, there are some possible problems with this system.
 For one thing, a a naive implementation of multimaps might fail to take an item out of Russell's inventory once Jochen gets it:
 
 ```rust
-inventory.insert(jochen, stick)
+inventory.insert(jochen, stick);
 
 println!("Russell's items: {:?}", inventory.get(russell)); 
     // => stick, beetle, pokemon_card
@@ -88,6 +88,7 @@ If you're a Rust or Python guy, you can think of it as two dictionaries that are
 It also solves several other problems:
 
 - the order of the items in a Moogle store is deterministic (based on `Ord`)
+- the data type of the result you get reflects whether a `UNIQUE` constraint could have existed
 - calling `.get_mut()` on a map resulting in a Set gets you a Set which automatically updates the opposed dictionary when you alter it.
 
 In case the last property needs some some demonstration:
