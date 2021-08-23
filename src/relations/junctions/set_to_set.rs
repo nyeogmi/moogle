@@ -81,7 +81,7 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for MFwd<'a, A, B> {
     fn items(&'a self) -> Self::Items { self.0.fwd.items() }
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
 }
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for VFwd<'a, A, B> {
@@ -98,7 +98,7 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for VFwd<'a, A, B> {
     fn items(&'a self) -> Self::Items { self.0.fwd.items() }
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
 }
 
 // == Forward (sets) ==
@@ -175,7 +175,7 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for MBwd<'a, A, B> {
     fn items(&'a self) -> Self::Items { self.0.bwd.items() }
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
 }
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for VBwd<'a, A, B> {
@@ -192,7 +192,7 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for VBwd<'a, A, B> {
     fn items(&'a self) -> Self::Items { self.0.bwd.items() }
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(k, v)| v) }
+    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
 }
 
 // == Backward (sets) ==

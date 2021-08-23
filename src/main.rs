@@ -1,9 +1,7 @@
 #![feature(min_type_alias_impl_trait)]
 pub mod relations;
 
-use std::collections::BTreeSet;
-
-use relations::{OneToOne, OneToSet, SetToOne, SetToSet, one_to_one, one_to_set, set_to_one, set_to_set};
+use relations::*;
 use relations::interfaces::*;
 
 fn main() {

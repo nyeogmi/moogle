@@ -16,7 +16,6 @@ impl<K: Id, V: Id> ToSet<K, V> {
     }
     pub fn keys<'a>(&'a self) -> impl 'a+Iterator<Item=K> { self.0.keys().map(|k| *k) }
     pub fn sets<'a>(&'a self) -> impl 'a+Iterator<Item=(K, &BTreeSet<V>)> { self.0.iter().map(|(k, v)| (*k, v) ) }
-    pub fn values<'a>(&'a self) -> impl 'a+Iterator<Item=&BTreeSet<V>> { self.0.values() }
 }
 
 // TODO: Track _total_ len (as in, number of pairs)
