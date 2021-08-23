@@ -6,7 +6,7 @@ use std::collections::{BTreeSet, BTreeMap};
 pub(crate) struct ToSet<K, V>(BTreeMap<K, BTreeSet<V>>);
 
 impl<K: Id, V: Id> ToSet<K, V> {
-    pub fn items<'a>(&'a self) -> impl 'a+Iterator<Item=(K, V)> { 
+    pub fn iter<'a>(&'a self) -> impl 'a+Iterator<Item=(K, V)> { 
         self.0.iter().flat_map(|(k, vs)|
             vs.iter().map(move |v| (*k, *v))
         )

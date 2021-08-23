@@ -146,4 +146,4 @@ Each specialization can be viewed in a forwards direction (using the `.fwd()` ac
 
 (What does "kept in sync" mean? Formally: `insert()`ing on one automatically `insert()`s on the other such that each pair `(a, b)` in one has a corresponding pair `(b, a)` in the other.)
 
-`Set`-based bimaps provide an `Entry`-like interface for insertions, as well as a `.items()` iterator that averts that interface.
+`Set`-based bimaps provide an `Entry`-like interface for insertions, as well as an iterator that averts that interface.

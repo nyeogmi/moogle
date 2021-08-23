@@ -69,7 +69,7 @@ impl<'a, A: Id, B: Id> MultiMapLike<'a, A, B> for MFwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for MFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
-    type Items = impl 'a+Iterator<Item=(A, B)>;
+    type Iter = impl 'a+Iterator<Item=(A, B)>;
     type Keys = impl 'a+Iterator<Item=A>;
     type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=B>;
@@ -78,15 +78,15 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for MFwd<'a, A, B> {
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
 
-    fn items(&'a self) -> Self::Items { self.0.fwd.items() }
+    fn iter(&'a self) -> Self::Iter { self.0.fwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
+    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
-    type Items = impl 'a+Iterator<Item=(A, B)>;
+    type Iter = impl 'a+Iterator<Item=(A, B)>;
     type Keys = impl 'a+Iterator<Item=A>;
     type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=B>;
@@ -95,10 +95,10 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, A, B> for VFwd<'a, A, B> {
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
 
-    fn items(&'a self) -> Self::Items { self.0.fwd.items() }
+    fn iter(&'a self) -> Self::Iter { self.0.fwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
+    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
 // == Forward (sets) ==
@@ -163,7 +163,7 @@ impl<'a, A: Id, B: Id> MultiMapLike<'a, B, A> for MBwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for MBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
-    type Items = impl 'a+Iterator<Item=(B, A)>;
+    type Iter = impl 'a+Iterator<Item=(B, A)>;
     type Keys = impl 'a+Iterator<Item=B>;
     type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=A>;
@@ -172,15 +172,15 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for MBwd<'a, A, B> {
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
     fn len(&self) -> usize { self.0.bwd.len() }
 
-    fn items(&'a self) -> Self::Items { self.0.bwd.items() }
+    fn iter(&'a self) -> Self::Iter { self.0.bwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
+    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
 impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for VBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
-    type Items = impl 'a+Iterator<Item=(B, A)>;
+    type Iter = impl 'a+Iterator<Item=(B, A)>;
     type Keys = impl 'a+Iterator<Item=B>;
     type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=A>;
@@ -189,10 +189,10 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for VBwd<'a, A, B> {
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
     fn len(&self) -> usize { self.0.bwd.len() }
 
-    fn items(&'a self) -> Self::Items { self.0.bwd.items() }
+    fn iter(&'a self) -> Self::Iter { self.0.bwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.items().map(|(_, v)| v) }
+    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
 // == Backward (sets) ==

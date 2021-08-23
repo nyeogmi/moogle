@@ -31,7 +31,7 @@ pub trait ViewMapLike<'a, K: Id, V: Id> {
 pub trait ViewMultiMapLike<'a, K: Id, V: Id> {
     type VMulti: ViewSetLike<'a, V>;
 
-    type Items: 'a+Iterator<Item=(K, V)>;
+    type Iter: 'a+Iterator<Item=(K, V)>;
     type Keys: 'a+Iterator<Item=K>;
     type Sets: 'a+Iterator<Item=(K, Self::VMulti)>;
     type Values: 'a+Iterator<Item=V>;
@@ -42,7 +42,7 @@ pub trait ViewMultiMapLike<'a, K: Id, V: Id> {
 
     fn contains(&'a self, k: K, v: V) -> bool { self.get(k).contains(v) }
 
-    fn items(&'a self) -> Self::Items;
+    fn iter(&'a self) -> Self::Iter;
     fn keys(&'a self) -> Self::Keys;
     fn sets(&'a self) -> Self::Sets;
     fn values(&'a self) -> Self::Values;
@@ -62,6 +62,10 @@ pub(crate) trait EvictSetLike<'a, K: Id, V: Id>: ViewSetLike<'a, V> {
 pub trait MapLike<'a, K: Id, V: Id>: ViewMapLike<'a, K, V> {
     fn insert(&mut self, k: K, v: V) -> Option<V>;
     fn expunge(&mut self, k: K) -> Option<V>;
+
+    fn remove(&mut self, k: K, v: V) -> Option<V> {
+        if self.get(k) == Some(v) { self.expunge(k) } else { None }
+    }
 }
 
 pub trait MultiMapLike<'a, K: Id, V: Id>: ViewMultiMapLike<'a, K, V> {
@@ -71,4 +75,8 @@ pub trait MultiMapLike<'a, K: Id, V: Id>: ViewMultiMapLike<'a, K, V> {
     fn get_mut(&'a mut self, k: K) -> Self::MMulti;
     fn insert(&mut self, k: K, v: V) -> Option<V>;  // note: only evicts if the inserted item was an exact duplicate
     fn expunge(&mut self, k: K) -> Self::MExpunge;
+
+    fn remove(&'a mut self, k: K, v: V) -> Option<V> {
+        self.get_mut(k).remove(v)
+    }
 }

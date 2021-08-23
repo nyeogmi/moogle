@@ -1,6 +1,7 @@
 
 ## TODOs
 
+- More thorough unit testing
 - Cute moogle logo.
 - IntoIterator for &T for all builtin `.iter()`-providing Ts.
 - Use the length as in "number of pairs" for len() in ToSets. (rather than "number of keys," which is used now) To do this, I'll need to calculate total length.

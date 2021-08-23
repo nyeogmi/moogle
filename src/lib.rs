@@ -1,5 +1,11 @@
 #![feature(min_type_alias_impl_trait)]
 
+#[cfg(test)]
+extern crate quickcheck;
+#[cfg(test)]
+#[macro_use(quickcheck)]
+extern crate quickcheck_macros;
+
 pub mod methods;
 mod junctions;
 mod keybound;
