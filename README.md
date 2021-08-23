@@ -16,8 +16,8 @@ let mut inventory: HashMap<NPC, Vec<Item>> = BTreeMap::new();
 
 This representation has the following problems:
 
-- if an NPC has no items, you have to manually initialize the BTreeSet
-- if an NPC runs out of items, you have to manually remove the BTreeSet
+- if an NPC has no items, you have to manually initialize the Vec
+- if an NPC runs out of items, you have to manually remove the Vec
 
 Many people deal with these two problems by creating a MultiMap type:
 
