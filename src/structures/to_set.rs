@@ -69,7 +69,7 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
     pub fn contains_key(&self, key: K) -> bool { self.elements.contains_key(&key) }
 
     pub fn len(&self) -> usize { self.total_len }
-    pub fn sets_len(&self) -> usize { self.elements.len() }
+    pub fn keys_len(&self) -> usize { self.elements.len() }
 }
 
 pub(crate) struct VSet<'a, K: Id, V: Id>(Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
