@@ -4,7 +4,7 @@ use std::fmt;
 use crate::keybound::Id;
 
 use crate::structures::{ToOne, ToSet};
-use crate::methods::ViewSetLike;
+use crate::methods::ViewSet;
 
 
 fn to_one<A: Debug+Id, B: Debug+Id>(f: &mut Formatter<'_>, t: &ToOne<A, B>) -> fmt::Result {
@@ -15,7 +15,7 @@ fn to_set<A: Debug+Id, B: Debug+Id>(f: &mut Formatter<'_>, t: &ToSet<A, B>) -> f
     f.debug_map().entries(t.sets()).finish()
 }
 
-fn set<'a, V: Debug+Id>(f: &mut Formatter<'_>, s: &'a impl ViewSetLike<'a, V>) -> fmt::Result {
+fn set<'a, V: Debug+Id>(f: &mut Formatter<'_>, s: &'a impl ViewSet<'a, V>) -> fmt::Result {
     f.debug_set().entries(s.iter()).finish()
 }
 

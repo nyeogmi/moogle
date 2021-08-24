@@ -1,6 +1,6 @@
 use crate::keybound::Id;
 
-use crate::methods::{ViewMapLike, MapLike};
+use crate::methods::{ViewAnyToOne, AnyToOne};
 
 use crate::structures::{ToOne};
 
@@ -36,7 +36,7 @@ impl<A: Id, B: Id> OneToOne<A, B> {
 } 
 
 // == Forward ==
-impl<'a, A: Id, B: Id> MapLike<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: Id, B: Id> AnyToOne<'a, A, B> for MFwd<'a, A, B> {
     fn insert(&mut self, a: A, b: B) -> Option<B> {
         let bwd = &mut self.0.bwd;
         let result = self.0.fwd.insert(a.clone(), b.clone(), move |k, v| { bwd.remove(v, k, |_, _|{}); });
@@ -53,7 +53,7 @@ impl<'a, A: Id, B: Id> MapLike<'a, A, B> for MFwd<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewMapLike<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for MFwd<'a, A, B> {
     type Iter = impl 'a+Iterator<Item=(A, B)>;
     type Keys = impl 'a+Iterator<Item=A>;
     type Values = impl 'a+Iterator<Item=B>;
@@ -67,7 +67,7 @@ impl<'a, A: Id, B: Id> ViewMapLike<'a, A, B> for MFwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.0.fwd.values() }
 }
 
-impl<'a, A: Id, B: Id> ViewMapLike<'a, A, B> for VFwd<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for VFwd<'a, A, B> {
     type Iter = impl 'a+Iterator<Item=(A, B)>;
     type Keys = impl 'a+Iterator<Item=A>;
     type Values = impl 'a+Iterator<Item=B>;
@@ -82,7 +82,7 @@ impl<'a, A: Id, B: Id> ViewMapLike<'a, A, B> for VFwd<'a, A, B> {
 }
 
 // == Backward ==
-impl<'a, A: Id, B: Id> MapLike<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: Id, B: Id> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
     fn insert(&mut self, b: B, a: A) -> Option<A> {
         let fwd = &mut self.0.fwd;
         let result = self.0.bwd.insert(b.clone(), a.clone(), move |k, v| { fwd.remove(v, k, |_, _|{}); });
@@ -98,7 +98,7 @@ impl<'a, A: Id, B: Id> MapLike<'a, B, A> for MBwd<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
     type Iter = impl 'a+Iterator<Item=(B, A)>;
     type Keys = impl 'a+Iterator<Item=B>;
     type Values = impl 'a+Iterator<Item=A>;
@@ -112,7 +112,7 @@ impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for MBwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.0.bwd.values() }
 }
 
-impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for VBwd<'a, A, B> {
+impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for VBwd<'a, A, B> {
     type Iter = impl 'a+Iterator<Item=(B, A)>;
     type Keys = impl 'a+Iterator<Item=B>;
     type Values = impl 'a+Iterator<Item=A>;
@@ -126,4 +126,4 @@ impl<'a, A: Id, B: Id> ViewMapLike<'a, B, A> for VBwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.0.bwd.values() }
 }
 
-// == TODO: Re-export setlike views of VFwd et al ==
+// == TODO: Re-export Set views of VFwd et al ==
