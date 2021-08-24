@@ -38,8 +38,16 @@ fn fwd_equal(fwd: Vec<(u16, i16)>, mut_fwd: Vec<(u16, i16)>) -> bool {
     fwd == mut_fwd
 }
 
+fn fwd_correct_len(fwd: Vec<(u16, i16)>, l: usize) -> bool {
+    fwd.len() == l
+}
+
 fn bwd_equal(bwd: Vec<(i16, u16)>, mut_bwd: Vec<(i16, u16)>) -> bool {
     bwd == mut_bwd
+}
+
+fn bwd_correct_len(bwd: Vec<(i16, u16)>, l: usize) -> bool {
+    bwd.len() == l
 }
 
 #[derive(Clone, Debug)]
@@ -176,7 +184,7 @@ mod one_to_one {
     // is not provided (or at least not tested for)
     // This lets you spot-check what each bimap has
     use crate::methods::*;
-    use super::{Routine, symmetrical, fwd_equal, bwd_equal};
+    use super::{Routine, symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
     use super::{pair_unique, fwd_unique, bwd_unique}; 
     use crate::OneToOne as T;
     
@@ -187,9 +195,21 @@ mod one_to_one {
     }
 
     #[quickcheck]
+    fn test_fwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        fwd_correct_len(xs.fwd().iter().collect(), xs.fwd().len())
+    }
+
+    #[quickcheck]
     fn test_bwd_equal(f: Routine) -> bool {
         let mut xs = T::prepare(&f);
         bwd_equal(xs.bwd().iter().collect(), xs.mut_bwd().iter().collect())
+    }
+
+    #[quickcheck]
+    fn test_bwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        bwd_correct_len(xs.bwd().iter().collect(), xs.bwd().len())
     }
 
     #[quickcheck]
@@ -223,7 +243,7 @@ mod one_to_set {
     // is not provided (or at least not tested for)
     // This lets you spot-check what each bimap has
     use crate::methods::*;
-    use super::{Routine, symmetrical, fwd_equal, bwd_equal};
+    use super::{Routine, symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
     use super::{pair_unique, bwd_unique}; 
     use crate::OneToSet as T;
     
@@ -234,9 +254,21 @@ mod one_to_set {
     }
 
     #[quickcheck]
+    fn test_fwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        fwd_correct_len(xs.fwd().iter().collect(), xs.fwd().len())
+    }
+
+    #[quickcheck]
     fn test_bwd_equal(f: Routine) -> bool {
         let mut xs = T::prepare(&f);
         bwd_equal(xs.bwd().iter().collect(), xs.mut_bwd().iter().collect())
+    }
+
+    #[quickcheck]
+    fn test_bwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        bwd_correct_len(xs.bwd().iter().collect(), xs.bwd().len())
     }
 
     #[quickcheck]
@@ -264,7 +296,7 @@ mod set_to_one {
     // is not provided (or at least not tested for)
     // This lets you spot-check what each bimap has
     use crate::methods::*;
-    use super::{Routine, symmetrical, fwd_equal, bwd_equal};
+    use super::{Routine, symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
     use super::{pair_unique, fwd_unique}; 
     use crate::SetToOne as T;
     
@@ -275,9 +307,21 @@ mod set_to_one {
     }
 
     #[quickcheck]
+    fn test_fwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        fwd_correct_len(xs.fwd().iter().collect(), xs.fwd().len())
+    }
+
+    #[quickcheck]
     fn test_bwd_equal(f: Routine) -> bool {
         let mut xs = T::prepare(&f);
         bwd_equal(xs.bwd().iter().collect(), xs.mut_bwd().iter().collect())
+    }
+
+    #[quickcheck]
+    fn test_bwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        bwd_correct_len(xs.bwd().iter().collect(), xs.bwd().len())
     }
 
     #[quickcheck]
@@ -305,7 +349,7 @@ mod set_to_set {
     // is not provided (or at least not tested for)
     // This lets you spot-check what each bimap has
     use crate::methods::*;
-    use super::{Routine, symmetrical, fwd_equal, bwd_equal};
+    use super::{Routine, symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
     use super::{pair_unique}; 
     use crate::SetToSet as T;
     
@@ -316,9 +360,21 @@ mod set_to_set {
     }
 
     #[quickcheck]
+    fn test_fwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        fwd_correct_len(xs.fwd().iter().collect(), xs.fwd().len())
+    }
+
+    #[quickcheck]
     fn test_bwd_equal(f: Routine) -> bool {
         let mut xs = T::prepare(&f);
         bwd_equal(xs.bwd().iter().collect(), xs.mut_bwd().iter().collect())
+    }
+
+    #[quickcheck]
+    fn test_bwd_correct_len(f: Routine) -> bool {
+        let xs = T::prepare(&f);
+        bwd_correct_len(xs.bwd().iter().collect(), xs.bwd().len())
     }
 
     #[quickcheck]

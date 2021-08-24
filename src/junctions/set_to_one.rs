@@ -121,6 +121,7 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for MBwd<'a, A, B> {
     fn get(&self, b: B) -> VBwdSet<'_, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
     fn len(&self) -> usize { self.0.bwd.len() }
+    fn sets_len(&self) -> usize { self.0.bwd.sets_len() }
 
     fn iter(&'a self) -> Self::Iter { self.0.bwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
@@ -137,7 +138,9 @@ impl<'a, A: Id, B: Id> ViewMultiMapLike<'a, B, A> for VBwd<'a, A, B> {
 
     fn get(&self, b: B) -> VBwdSet<'_, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
+
     fn len(&self) -> usize { self.0.bwd.len() }
+    fn sets_len(&self) -> usize { self.0.bwd.sets_len() }
 
     fn iter(&'a self) -> Self::Iter { self.0.bwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }

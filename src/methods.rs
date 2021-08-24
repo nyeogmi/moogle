@@ -38,7 +38,9 @@ pub trait ViewMultiMapLike<'a, K: Id, V: Id> {
 
     fn get(&'a self, k: K) -> Self::VMulti;
     fn contains_key(&self, k: K) -> bool;
+
     fn len(&self) -> usize;  // TODO: Make sure it matches iter()
+    fn sets_len(&self) -> usize;  // TODO: Make sure it matches iter()
 
     fn contains(&'a self, k: K, v: V) -> bool { self.get(k).contains(v) }
 
