@@ -1,4 +1,4 @@
-use std::cell::{Cell, UnsafeCell};
+use std::cell::Cell;
 use std::mem::MaybeUninit;
 use std::marker::PhantomData;
 use std::collections::btree_set;
@@ -12,7 +12,7 @@ pub struct InteriorSetRange<T, K: Id> {
     state: Cell<u64>, 
 
     // note: this is safe because Range is not Drop
-    value: UnsafeCell<MaybeUninit<btree_set::Range<'static, K>>>,
+    value: MaybeUninit<btree_set::Range<'static, K>>,
 }
 
 impl<T, K: Id> Clone for InteriorSetRange<T, K> {
@@ -20,13 +20,12 @@ impl<T, K: Id> Clone for InteriorSetRange<T, K> {
         InteriorSetRange {
             parent: self.parent,
             state: self.state.clone(),
-            value: UnsafeCell::new(
+            value: 
                 if self.state.get() == 0 {
                     MaybeUninit::uninit()
                 } else {
-                    MaybeUninit::new(unsafe {(&*self.value.get()).assume_init_ref()}.clone())
+                    MaybeUninit::new(unsafe {self.value.assume_init_ref()}.clone())
                 }
-            )
         }
     }
 }
@@ -36,7 +35,7 @@ impl<T> MoogCell<T> {
         InteriorSetRange { 
             parent: PhantomData, 
             state: Cell::new(0), 
-            value: UnsafeCell::new(MaybeUninit::uninit())
+            value: MaybeUninit::uninit()
          }
     }
 }
@@ -53,10 +52,10 @@ impl<T, K: Id> InteriorSetRange<T, K> {
             let value: btree_set::Range<'a, K> = compute();
 
             let static_value: btree_set::Range<'static, K> = unsafe { std::mem::transmute(value) };
-            unsafe {*self.value.get() = MaybeUninit::new(static_value);}
+            self.value = MaybeUninit::new(static_value);
         }
 
-        let old_ptr: &mut btree_set::Range<'static, K> = unsafe { (&mut *self.value.get()).assume_init_mut() };
+        let old_ptr: &mut btree_set::Range<'static, K> = unsafe { self.value.assume_init_mut() };
         let new_ptr: &mut btree_set::Range<'a, K> = unsafe { std::mem::transmute(old_ptr) };
 
         new_ptr

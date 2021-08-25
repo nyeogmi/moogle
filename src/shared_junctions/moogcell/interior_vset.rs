@@ -1,4 +1,4 @@
-use std::cell::{Cell, UnsafeCell};
+use std::cell::Cell;
 use std::mem::MaybeUninit;
 use std::marker::PhantomData;
 use crate::structures::VSet;
@@ -11,8 +11,7 @@ pub struct InteriorVSet<T, K: Id, V: Id> {
     parent: PhantomData<*const T>,
     state: Cell<u64>, 
 
-    // note: this is safe because VSet is not Drop
-    value: UnsafeCell<MaybeUninit<VSet<'static, K, V>>>,
+    value: Cell<MaybeUninit<VSet<'static, K, V>>>,
 }
 
 impl<T, K: Id, V: Id> Clone for InteriorVSet<T, K, V> {
@@ -20,11 +19,11 @@ impl<T, K: Id, V: Id> Clone for InteriorVSet<T, K, V> {
         InteriorVSet {
             parent: self.parent,
             state: self.state.clone(),
-            value: UnsafeCell::new(
+            value: Cell::new(
                 if self.state.get() == 0 {
                     MaybeUninit::uninit()
                 } else {
-                    MaybeUninit::new(unsafe {(&*self.value.get()).assume_init_ref()}.clone())
+                    MaybeUninit::new(unsafe {self.value.get().assume_init_ref()}.clone())
                 }
             )
         }
@@ -36,7 +35,7 @@ impl<T> MoogCell<T> {
         InteriorVSet { 
             parent: PhantomData, 
             state: Cell::new(0), 
-            value: UnsafeCell::new(MaybeUninit::uninit())
+            value: Cell::new(MaybeUninit::uninit()),
         }
     }
 }
@@ -58,11 +57,11 @@ impl<T, K: Id, V: Id> InteriorVSet<T, K, V> {
             };
 
             let static_value: VSet<'static, K, V> = unsafe { std::mem::transmute(value) };
-            unsafe {*self.value.get() = MaybeUninit::new(static_value);}
+            self.value.replace(MaybeUninit::new(static_value));
         }
 
-        let old_ptr: &VSet<'static, K, V> = unsafe { (&mut *self.value.get()).assume_init_ref() };
-        let new_ptr: &VSet<'a, K, V> = unsafe { std::mem::transmute(old_ptr) };
+        let old_ptr: VSet<'static, K, V> = unsafe { self.value.get().assume_init() };
+        let new_ptr: VSet<'a, K, V> = unsafe { std::mem::transmute(old_ptr) };
 
         new_ptr.clone()
     }

@@ -80,7 +80,7 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
     pub fn keys_len(&self) -> usize { self.elements.len() }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub(crate) struct VSet<'a, K: Id, V: Id>(pub(crate) Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
 pub(crate) struct MSet<'a, K: Id, V: Id>(K, &'a mut ToSet<K, V>);  
 

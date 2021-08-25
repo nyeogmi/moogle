@@ -1,4 +1,4 @@
-use std::cell::{Cell, UnsafeCell};
+use std::cell::Cell;
 use std::mem::MaybeUninit;
 use std::marker::PhantomData;
 use std::collections::btree_map;
@@ -12,7 +12,7 @@ pub struct InteriorTreeRange<T, K: Id, V: 'static> {
     state: Cell<u64>, 
 
     // note: this is safe because Range is not Drop
-    value: UnsafeCell<MaybeUninit<btree_map::Range<'static, K, V>>>, 
+    value: MaybeUninit<btree_map::Range<'static, K, V>>, 
 }
 
 impl<T, K: Id, V: 'static> Clone for InteriorTreeRange<T, K, V> {
@@ -20,13 +20,12 @@ impl<T, K: Id, V: 'static> Clone for InteriorTreeRange<T, K, V> {
         InteriorTreeRange {
             parent: self.parent,
             state: self.state.clone(),
-            value: UnsafeCell::new(
+            value: 
                 if self.state.get() == 0 {
                     MaybeUninit::uninit()
                 } else {
-                    MaybeUninit::new(unsafe {(&*self.value.get()).assume_init_ref()}.clone())
+                    MaybeUninit::new(unsafe {self.value.assume_init_ref()}.clone())
                 }
-            )
         }
     }
 }
@@ -36,7 +35,7 @@ impl<T> MoogCell<T> {
         InteriorTreeRange { 
             parent: PhantomData, 
             state: Cell::new(0), 
-            value: UnsafeCell::new(MaybeUninit::uninit())
+            value: MaybeUninit::uninit(),
         }
     }
 }
@@ -58,10 +57,10 @@ impl<T, K: Id, V: 'static> InteriorTreeRange<T, K, V> {
             };
 
             let static_value: btree_map::Range<'static, K, V> = unsafe { std::mem::transmute(value) };
-            unsafe {*self.value.get() = MaybeUninit::new(static_value);}
+            self.value = MaybeUninit::new(static_value);
         }
 
-        let old_ptr: &mut btree_map::Range<'static, K, V> = unsafe { (&mut *self.value.get()).assume_init_mut() };
+        let old_ptr: &mut btree_map::Range<'static, K, V> = unsafe { self.value.assume_init_mut() };
         let new_ptr: &mut btree_map::Range<'a, K, V> = unsafe { std::mem::transmute(old_ptr) };
 
         new_ptr
