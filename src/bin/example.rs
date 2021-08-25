@@ -1,7 +1,7 @@
 use moogle::*;
 
 fn main() {
-    let s: SharedSetToSet::<char, usize> = SharedSetToSet::new();
+    let s: SharedOneToSet::<char, usize> = SharedOneToSet::new();
     let fwd = s.fwd().get('a');
 
     fwd.insert(4);
@@ -17,7 +17,7 @@ fn main() {
     }
 
     println!("reverse:");
-    for i in s.fwd().iter().rev() {
+    for i in s.bwd().iter() {
         println!("Found: {:?}", i);
         s.fwd().get('a').insert(6);
     }

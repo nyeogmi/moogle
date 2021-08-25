@@ -1,4 +1,4 @@
-use super::SharedSetToSet;
+use super::SharedSetToOne;
 
 use crate::keybound::Id;
 
@@ -6,7 +6,7 @@ use crate::methods::{SharedAnyToSet, SharedSet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
 use crate::methods::{ViewSet, Set};
 
-use crate::junctions::set_to_set::SetToSet;
+use crate::junctions::set_to_one::SetToOne;
 
 use std::collections::BTreeSet;
 
@@ -16,10 +16,10 @@ use super::super::iterators::{KeysIterator, SetIterator};
 use crate::structures::VSet;
 
 // == type ==
-pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedSetToSet<A, B> }
+pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedSetToOne<A, B> }
 pub struct BwdSet<'a, A: Id, B: Id> { 
-    parent: &'a SharedSetToSet<A, B>, 
-    cache: InteriorVSet<SetToSet<A, B>, B, A>,
+    parent: &'a SharedSetToOne<A, B>, 
+    cache: InteriorVSet<SetToOne<A, B>, B, A>,
     key: B 
 }
 
@@ -52,8 +52,6 @@ impl <'a, A: Id, B: Id> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 
     fn len(&self) -> usize { self.me.raw.borrow().bwd().len() }  
     fn keys_len(&self) -> usize { self.me.raw.borrow().bwd().keys_len() }
-
-    fn contains(&'a self, b: B, a: A) -> bool { self.me.raw.borrow().bwd().get(b).contains(a) }
 
     fn iter(&'a self) -> Self::Iter {
         self.keys().flat_map(move |k| self.get(k).iter().map(move |v| (k, v)))
@@ -95,8 +93,8 @@ impl <'a, A: Id, B: Id> SharedSet<'a, A> for BwdSet<'a, A, B> {
 
 // == iterators ==
 struct BwdKeysIterator<'a, A: Id, B: Id> {
-    me: &'a SharedSetToSet<A, B>, 
-    iter: KeysIterator<SetToSet<A, B>, B, A>,
+    me: &'a SharedSetToOne<A, B>, 
+    iter: KeysIterator<SetToOne<A, B>, B, A>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for BwdKeysIterator<'a, A, B> {
@@ -114,8 +112,8 @@ impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdKeysIterator<'a, A, B> {
 }
 
 struct BwdSetIterator<'a, A: Id, B: Id> {
-    parent: &'a SharedSetToSet<A, B>, 
-    iter: SetIterator<SetToSet<A, B>, B, A>,
+    parent: &'a SharedSetToOne<A, B>, 
+    iter: SetIterator<SetToOne<A, B>, B, A>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for BwdSetIterator<'a, A, B> {

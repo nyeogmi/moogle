@@ -1,4 +1,4 @@
-use super::SharedSetToSet;
+use super::SharedOneToSet;
 
 use crate::keybound::Id;
 
@@ -6,7 +6,7 @@ use crate::methods::{SharedAnyToSet, SharedSet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
 use crate::methods::{ViewSet, Set};
 
-use crate::junctions::set_to_set::SetToSet;
+use crate::junctions::one_to_set::OneToSet;
 
 use std::collections::BTreeSet;
 
@@ -16,10 +16,10 @@ use super::super::iterators::{KeysIterator, SetIterator};
 use crate::structures::VSet;
 
 // == type ==
-pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedSetToSet<A, B> }
+pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedOneToSet<A, B> }
 pub struct FwdSet<'a, A: Id, B: Id> { 
-    parent: &'a SharedSetToSet<A, B>, 
-    cache: InteriorVSet<SetToSet<A, B>, A, B>,
+    parent: &'a SharedOneToSet<A, B>, 
+    cache: InteriorVSet<OneToSet<A, B>, A, B>,
     key: A 
 }
 
@@ -93,8 +93,8 @@ impl <'a, A: Id, B: Id> SharedSet<'a, B> for FwdSet<'a, A, B> {
 
 // == iterators ==
 struct FwdKeysIterator<'a, A: Id, B: Id> {
-    me: &'a SharedSetToSet<A, B>, 
-    iter: KeysIterator<SetToSet<A, B>, A, B>,
+    me: &'a SharedOneToSet<A, B>, 
+    iter: KeysIterator<OneToSet<A, B>, A, B>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for FwdKeysIterator<'a, A, B> {
@@ -112,8 +112,8 @@ impl <'a, A: Id, B: Id> DoubleEndedIterator for FwdKeysIterator<'a, A, B> {
 }
 
 struct FwdSetIterator<'a, A: Id, B: Id> {
-    parent: &'a SharedSetToSet<A, B>, 
-    iter: SetIterator<SetToSet<A, B>, A, B>,
+    parent: &'a SharedOneToSet<A, B>, 
+    iter: SetIterator<OneToSet<A, B>, A, B>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for FwdSetIterator<'a, A, B> {
