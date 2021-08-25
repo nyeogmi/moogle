@@ -19,7 +19,7 @@ use crate::structures::VSet;
 pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedSetToSet<A, B> }
 pub struct BwdSet<'a, A: Id, B: Id> { 
     parent: &'a SharedSetToSet<A, B>, 
-    cache: InteriorVSet<SetToSet<A, B>, B, A>,
+    cache: InteriorVSet<'a, SetToSet<A, B>, B, A>,
     key: B 
 }
 
@@ -27,7 +27,6 @@ pub struct BwdSet<'a, A: Id, B: Id> {
 impl <'a, A: Id, B: Id> BwdSet<'a, A, B> {
     fn fetch(&self) -> VSet<'a, B, A> {
         return self.cache.get_or_compute(
-            &self.parent.raw, 
             |o| o.bwd().get_short(self.key).0,
         )
     }
@@ -60,7 +59,6 @@ impl <'a, A: Id, B: Id> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
     }
     fn keys(&'a self) -> Self::Keys {
         BwdKeysIterator::<'a, A, B> { 
-            me: self.me,
             iter: KeysIterator::new(self.me.raw.create_interior_tree_range())
         }
     }
@@ -80,7 +78,6 @@ impl <'a, A: Id, B: Id> SharedSet<'a, A> for BwdSet<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         BwdSetIterator {
-            parent: self.parent,
             iter: SetIterator::new(
                 self.parent.raw.create_interior_vset(),
                 self.parent.raw.create_interior_set_range(),
@@ -95,39 +92,37 @@ impl <'a, A: Id, B: Id> SharedSet<'a, A> for BwdSet<'a, A, B> {
 
 // == iterators ==
 struct BwdKeysIterator<'a, A: Id, B: Id> {
-    me: &'a SharedSetToSet<A, B>, 
-    iter: KeysIterator<SetToSet<A, B>, B, A>,
+    iter: KeysIterator<'a, SetToSet<A, B>, B, A>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for BwdKeysIterator<'a, A, B> {
     type Item = B;
 
     fn next(&mut self) -> Option<B> {
-        self.iter.next(&self.me.raw, |p| &p.bwd)
+        self.iter.next(|p| &p.bwd)
     }
 }
 
 impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdKeysIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
-        self.iter.next_back(&self.me.raw, |p| &p.bwd)
+        self.iter.next_back(|p| &p.bwd)
     }
 }
 
 struct BwdSetIterator<'a, A: Id, B: Id> {
-    parent: &'a SharedSetToSet<A, B>, 
-    iter: SetIterator<SetToSet<A, B>, B, A>,
+    iter: SetIterator<'a, SetToSet<A, B>, B, A>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for BwdSetIterator<'a, A, B> {
     type Item = A;
 
     fn next(&mut self) -> Option<A> {
-        self.iter.next(&self.parent.raw, |p, k| p.bwd().get_short(k).0)
+        self.iter.next(|p, k| p.bwd().get_short(k).0)
     }
 }
 
 impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdSetIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
-        self.iter.next_back(&self.parent.raw, |p, k| p.bwd().get_short(k).0)
+        self.iter.next_back(|p, k| p.bwd().get_short(k).0)
     }
 }

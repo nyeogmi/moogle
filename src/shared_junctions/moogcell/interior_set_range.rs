@@ -1,24 +1,23 @@
 use std::cell::Cell;
 use std::mem::MaybeUninit;
-use std::marker::PhantomData;
 use std::collections::btree_set;
 
 use crate::keybound::Id;
 
 use super::MoogCell;
 
-pub struct InteriorSetRange<T, K: Id> {
-    parent: PhantomData<*const T>,
+pub struct InteriorSetRange<'a, T, K: Id> {
+    owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
     // note: this is safe because Range is not Drop
     value: MaybeUninit<btree_set::Range<'static, K>>,
 }
 
-impl<T, K: Id> Clone for InteriorSetRange<T, K> {
+impl<'a, T, K: Id> Clone for InteriorSetRange<'a, T, K> {
     fn clone(&self) -> Self { 
         InteriorSetRange {
-            parent: self.parent,
+            owner: self.owner,
             state: self.state.clone(),
             value: 
                 if self.state.get() == 0 {
@@ -31,23 +30,23 @@ impl<T, K: Id> Clone for InteriorSetRange<T, K> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_set_range<K: Id>(&self) -> InteriorSetRange<T, K> { 
+    pub fn create_interior_set_range<K: Id>(&self) -> InteriorSetRange<'_, T, K> { 
         InteriorSetRange { 
-            parent: PhantomData, 
+            owner: self, 
             state: Cell::new(0), 
             value: MaybeUninit::uninit()
          }
     }
 }
 
-impl<T, K: Id> InteriorSetRange<T, K> {
-    pub(crate) fn get_or_compute<'a>(
+impl<'a, T, K: Id> InteriorSetRange<'a, T, K> {
+    pub(crate) fn get_or_compute(
         &mut self, 
-        owner: &'a MoogCell<T>, 
         compute: impl FnOnce() -> btree_set::Range<'a, K>
     ) -> &mut btree_set::Range<'a, K> {
-        if self.state.get() != owner.state.get() {
-            self.state.replace(owner.state.get());
+        let og = self.owner.state.get();
+        if self.state.get() != og {
+            self.state.replace(og);
 
             let value: btree_set::Range<'a, K> = compute();
 

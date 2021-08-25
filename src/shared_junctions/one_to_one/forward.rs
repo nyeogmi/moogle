@@ -23,7 +23,6 @@ impl <'a, A: Id, B: Id> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
     fn iter(&'a self) -> Self::Iter {
         FwdFlatIterator::<'a, A, B> {
-            me: self.me,
             iter: FlatIterator::new(self.me.raw.create_interior_tree_range()),
         }
     }
@@ -36,20 +35,19 @@ impl <'a, A: Id, B: Id> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
 // == iterators ==
 struct FwdFlatIterator<'a, A: Id, B: Id> {
-    me: &'a SharedOneToOne<A, B>,
-    iter: FlatIterator<OneToOne<A, B>, A, B>,
-
+    iter: FlatIterator<'a, OneToOne<A, B>, A, B>,
 }
+
 impl<'a, A: Id, B: Id> Iterator for FwdFlatIterator<'a, A, B> {
     type Item = (A, B);
 
     fn next(&mut self) -> Option<(A, B)> {
-        self.iter.next(&self.me.raw, |p| &p.fwd)
+        self.iter.next(|p| &p.fwd)
     }
 }
 
 impl <'a, A: Id, B: Id> DoubleEndedIterator for FwdFlatIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
-        self.iter.next_back(&self.me.raw, |p| &p.fwd)
+        self.iter.next_back(|p| &p.fwd)
     }
 }
