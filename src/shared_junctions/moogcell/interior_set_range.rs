@@ -49,7 +49,6 @@ impl<'a, T, K: Id> InteriorSetRange<'a, T, K> {
             self.state.replace(og);
 
             let value: btree_set::Range<'a, K> = compute();
-
             let static_value: btree_set::Range<'static, K> = unsafe { std::mem::transmute(value) };
             self.value = MaybeUninit::new(static_value);
         }

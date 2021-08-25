@@ -49,12 +49,7 @@ impl<'a, T, K: Id, V: Id> InteriorVSet<'a, T, K, V> {
             self.state.replace(og);
 
             let borrow = self.owner.borrow();
-            let value: VSet<'a, K, V> = {
-                let borrow_ref: &T = &borrow;
-                let long_ref: &'a T = unsafe { std::mem::transmute(borrow_ref) };
-                compute(long_ref)
-            };
-
+            let value: VSet<'_, K, V> = compute(&borrow);
             let static_value: VSet<'static, K, V> = unsafe { std::mem::transmute(value) };
             self.value.replace(MaybeUninit::new(static_value));
         }

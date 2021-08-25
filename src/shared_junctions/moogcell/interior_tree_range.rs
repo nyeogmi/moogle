@@ -49,12 +49,7 @@ impl<'a, T, K: Id, V: 'static> InteriorTreeRange<'a, T, K, V> {
             self.state.replace(og);
 
             let borrow = self.owner.borrow();
-            let value: btree_map::Range<'a, K, V> = {
-                let borrow_ref: &T = &borrow;
-                let long_ref: &'a T = unsafe { std::mem::transmute(borrow_ref) };
-                compute(long_ref)
-            };
-
+            let value: btree_map::Range<'_, K, V> = compute(&borrow);
             let static_value: btree_map::Range<'static, K, V> = unsafe { std::mem::transmute(value) };
             self.value = MaybeUninit::new(static_value);
         }
