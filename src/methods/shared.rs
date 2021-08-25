@@ -1,7 +1,7 @@
 use crate::keybound::Id;
 
 pub trait SharedSet<'a, T: Id> {
-    type Iter: 'a+Iterator<Item=T>;
+    type Iter: 'a+DoubleEndedIterator<Item=T>;
 
     fn contains(&self, k: T) -> bool;
     fn len(&self) -> usize;
@@ -13,9 +13,9 @@ pub trait SharedSet<'a, T: Id> {
 }
 
 pub trait SharedAnyToOne<'a, K: Id, V: Id> {
-    type Iter: 'a+Iterator<Item=(K, V)>;
-    type Keys: 'a+Iterator<Item=K>;
-    type Values: 'a+Iterator<Item=V>;
+    type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;
+    type Keys: 'a+DoubleEndedIterator<Item=K>;
+    type Values: 'a+DoubleEndedIterator<Item=V>;
 
     fn get(&self, k: K) -> Option<V>;
     fn contains_key(&self, k: K) -> bool;
@@ -39,10 +39,10 @@ pub trait SharedAnyToSet<'a, K: Id, V: Id> {
     type Multi: SharedSet<'a, V>;
     type Expunge;  // TODO: Set?
 
-    type Iter: 'a+Iterator<Item=(K, V)>;
-    type Keys: 'a+Iterator<Item=K>;
-    type Sets: 'a+Iterator<Item=(K, Self::Multi)>;
-    type Values: 'a+Iterator<Item=V>;
+    type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;
+    type Keys: 'a+DoubleEndedIterator<Item=K>;
+    type Sets: 'a+DoubleEndedIterator<Item=(K, Self::Multi)>;
+    type Values: 'a+DoubleEndedIterator<Item=V>;
 
     fn get(&self, k: K) -> Self::Multi;
     fn contains_key(&self, k: K) -> bool;
