@@ -12,14 +12,17 @@ pub(crate) struct KeysIterator<'a, Parent, K: Id, V: Id> {
 
     front_cursor: Option<K>,
     back_cursor: Option<K>,
+    done: bool,
 }
 
 impl<'a, Parent, K: Id, V: Id> KeysIterator<'a, Parent, K, V> {
     pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, BTreeSet<V>>) -> KeysIterator<'a, Parent, K, V> {
         KeysIterator {
             iterator,
+
             front_cursor: None,
             back_cursor: None,
+            done: false,
         }
     }
 
@@ -40,9 +43,12 @@ impl<'a, Parent, K: Id, V: Id> KeysIterator<'a, Parent, K, V> {
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
     ) -> Option<K> {
+        if self.done { return None; }
+
         let iter = self.reconstitute(open_parent);
         let k = iter.next().map(|(k, _)| *k); 
         self.front_cursor = k; 
+        if k == None { self.done = true; }
         k
     }
 
@@ -50,9 +56,12 @@ impl<'a, Parent, K: Id, V: Id> KeysIterator<'a, Parent, K, V> {
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
     ) -> Option<K> { 
+        if self.done { return None; }
+
         let iter = self.reconstitute(open_parent);
         let k = iter.next_back().map(|(k, _)| *k); 
         self.back_cursor = k; 
+        if k == None { self.done = true; }
         k
     }
 }
@@ -64,6 +73,7 @@ pub(crate) struct SetIterator<'a, Parent, K: Id, V: Id> {
     key: K,
     front_cursor: Option<V>,
     back_cursor: Option<V>,
+    done: bool,
 }
 
 impl<'a, Parent, K: Id, V: Id> SetIterator<'a, Parent, K, V> {
@@ -79,6 +89,7 @@ impl<'a, Parent, K: Id, V: Id> SetIterator<'a, Parent, K, V> {
             key,
             front_cursor: None,
             back_cursor: None,
+            done: false,
         }
     }
 
@@ -107,9 +118,12 @@ impl<'a, Parent, K: Id, V: Id> SetIterator<'a, Parent, K, V> {
         &mut self, 
         find_vset: impl FnOnce(&Parent, K) -> VSet<K, V>
     ) -> Option<V> {
+        if self.done { return None; }
+
         let iter = self.reconstitute(find_vset);
         let v = iter?.next().map(|v| *v); 
         self.front_cursor = v; 
+        if v == None { self.done = true; }
         v
     }
 
@@ -117,9 +131,12 @@ impl<'a, Parent, K: Id, V: Id> SetIterator<'a, Parent, K, V> {
         &mut self, 
         find_vset: impl FnOnce(&Parent, K) -> VSet<K, V>
     ) -> Option<V> { 
+        if self.done { return None; }
+
         let iter = self.reconstitute(find_vset);
         let v = iter?.next_back().map(|v| *v); 
         self.back_cursor = v; 
+        if v == None { self.done = true; }
         v
     }
 }
@@ -129,6 +146,7 @@ pub(crate) struct FlatIterator<'a, Parent, K: Id, V: Id> {
 
     front_cursor: Option<K>,
     back_cursor: Option<K>,
+    done: bool,
 }
 
 impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
@@ -137,6 +155,7 @@ impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
             iterator,
             front_cursor: None,
             back_cursor: None,
+            done: false,
         }
     }
 
@@ -157,6 +176,8 @@ impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToOne<K, V>
     ) -> Option<(K, V)> {
+        if self.done { return None; }
+
         let iter = self.reconstitute(open_parent);
         match iter.next().map(|(k, v)| (*k, *v)) {
             Some((k, v)) => {
@@ -164,7 +185,7 @@ impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
                 Some((k, v))
             },
             None => { 
-                self.front_cursor = None; 
+                self.done = true;
                 None
             }
         }
@@ -174,6 +195,8 @@ impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToOne<K, V>
     ) -> Option<(K, V)> { 
+        if self.done { return None; }
+
         let iter = self.reconstitute(open_parent);
         match iter.next_back().map(|(k, v)| (*k, *v)) {
             Some((k, v)) => {
@@ -181,7 +204,7 @@ impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
                 Some((k, v))
             },
             None => { 
-                self.back_cursor = None; 
+                self.done = true;
                 None
             }
         }
