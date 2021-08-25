@@ -74,7 +74,7 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=B>;
 
-    fn get(&self, a: A) -> VFwdSet<'_, A, B> { VFwdSet(self.0.fwd.get(a)) }
+    fn get(&'a self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
     fn keys_len(&self) -> usize { self.0.fwd.keys_len() }
@@ -85,6 +85,10 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
+impl<'a, A: Id, B: Id> VFwd<'a, A, B> {
+    pub(crate) fn get_short(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
+}
+
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+Iterator<Item=(A, B)>;
@@ -92,7 +96,7 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=B>;
 
-    fn get(&self, a: A) -> VFwdSet<'_, A, B> { VFwdSet(self.0.fwd.get(a)) }
+    fn get(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
     fn len(&self) -> usize { self.0.fwd.len() }
     fn keys_len(&self) -> usize { self.0.fwd.keys_len() }
@@ -170,7 +174,7 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, B, A> for MBwd<'a, A, B> {
     type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=A>;
 
-    fn get(&self, b: B) -> VBwdSet<'_, A, B> { VBwdSet(self.0.bwd.get(b)) }
+    fn get(&'a self, b: B) -> VBwdSet<'a, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
     fn len(&self) -> usize { self.0.bwd.len() }
     fn keys_len(&self) -> usize { self.0.bwd.keys_len() }
@@ -181,6 +185,10 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, B, A> for MBwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
+impl<'a, A: Id, B: Id> VBwd<'a, A, B> {
+    pub(crate) fn get_short(&self, b: B) -> VBwdSet<'a, A, B> { VBwdSet(self.0.bwd.get(b)) }
+}
+
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, B, A> for VBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
     type Iter = impl 'a+Iterator<Item=(B, A)>;
@@ -188,7 +196,7 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, B, A> for VBwd<'a, A, B> {
     type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
     type Values = impl 'a+Iterator<Item=A>;
 
-    fn get(&self, b: B) -> VBwdSet<'_, A, B> { VBwdSet(self.0.bwd.get(b)) }
+    fn get(&self, b: B) -> VBwdSet<'a, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
     fn len(&self) -> usize { self.0.bwd.len() }
     fn keys_len(&self) -> usize { self.0.bwd.keys_len() }

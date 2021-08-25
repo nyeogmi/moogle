@@ -2,6 +2,8 @@ use crate::keybound::Id;
 use crate::methods::{EvictSet, ViewSet};
 
 use std::collections::{BTreeSet, BTreeMap};
+use std::collections::btree_map::Range;
+use std::ops::RangeBounds;
 
 pub(crate) struct ToSet<K, V> {
     elements: BTreeMap<K, BTreeSet<V>>,
@@ -35,6 +37,10 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
         }
     }
 
+    pub fn range(&self, r: impl RangeBounds<K>) -> Range<'_, K, BTreeSet<V>> {
+        self.elements.range(r)
+    }
+
     pub fn expunge(&mut self, key: K, mut on_evict: impl FnMut(K, V)) -> BTreeSet<V> {
         match self.elements.remove(&key) {
             Some(xs) => {
@@ -64,7 +70,9 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
         result
     }
 
-    pub fn get(&'a self, key: K) -> VSet<'a, K, V> { VSet(self.elements.get(&key), ::std::marker::PhantomData) }
+    pub fn get(&'a self, key: K) -> VSet<'a, K, V> { 
+        VSet(self.elements.get(&key), ::std::marker::PhantomData) 
+    }
     pub fn get_mut(&'a mut self, key: K) -> MSet<'a, K, V> { MSet(key, self) }
     pub fn contains_key(&self, key: K) -> bool { self.elements.contains_key(&key) }
 
@@ -72,7 +80,8 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
     pub fn keys_len(&self) -> usize { self.elements.len() }
 }
 
-pub(crate) struct VSet<'a, K: Id, V: Id>(Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
+#[derive(Clone)]
+pub(crate) struct VSet<'a, K: Id, V: Id>(pub(crate) Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
 pub(crate) struct MSet<'a, K: Id, V: Id>(K, &'a mut ToSet<K, V>);  
 
 impl<'a, K: Id, V: Id> MSet<'a, K, V> {
