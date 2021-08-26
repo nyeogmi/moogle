@@ -1,8 +1,8 @@
 [package]
 name = "moogle"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Nyeogmi <economicsbat@gmail.com>"]
-description = "a data store for relational code"
+description = "data structures for relational code"
 readme = "README.md"
 homepage = "https://github.com/nyeogmi/moogle"
 repository = "https://github.com/nyeogmi/moogle"
