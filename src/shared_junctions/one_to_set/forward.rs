@@ -52,16 +52,20 @@ impl <'a, A: Id, B: Id> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
     fn len(&self) -> usize { self.me.raw.borrow().fwd().len() }  
     fn keys_len(&self) -> usize { self.me.raw.borrow().fwd().keys_len() }
 
-    fn iter(&'a self) -> Self::Iter {
-        self.keys().flat_map(move |k| self.get(k).iter().map(move |v| (k, v)))
+    fn iter(&self) -> Self::Iter {
+        let me = self.me;
+        self.keys().flat_map(move |k| me.fwd().get(k).iter().map(move |v| (k, v)))
     }
-    fn keys(&'a self) -> Self::Keys {
+    fn keys(&self) -> Self::Keys {
         FwdKeysIterator::<'a, A, B> { 
             iter: KeysIterator::new(self.me.raw.create_interior_tree_range())
         }
     }
-    fn sets(&'a self) -> Self::Sets { self.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
+    fn sets(&self) -> Self::Sets { 
+        let me = self.me;
+        self.keys().map(move |k| (k, me.fwd().get(k))) 
+    }
+    fn values(&self) -> Self::Values { self.iter().map(|(_, v)| v) }
 
     fn insert(&self, a: A, b: B) -> Option<B> { self.me.raw.borrow_mut().mut_fwd().insert(a, b) }
     fn expunge(&self, a: A) -> Self::Expunge { self.me.raw.borrow_mut().mut_fwd().expunge(a) }

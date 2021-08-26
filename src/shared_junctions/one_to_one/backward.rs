@@ -21,13 +21,13 @@ impl <'a, A: Id, B: Id> SharedAnyToOne<'a, B, A> for Bwd<'a, A, B> {
     fn contains_key(&self, b: B) -> bool { self.me.raw.borrow().bwd().contains_key(b) }
     fn len(&self) -> usize { self.me.raw.borrow().bwd().len() }
 
-    fn iter(&'a self) -> Self::Iter {
+    fn iter(&self) -> Self::Iter {
         BwdFlatIterator::<'a, A, B> {
             iter: FlatIterator::new(self.me.raw.create_interior_tree_range()),
         }
     }
-    fn keys(&'a self) -> Self::Keys { self.iter().map(|(k, _)| k) }
-    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
+    fn keys(&self) -> Self::Keys { self.iter().map(|(k, _)| k) }
+    fn values(&self) -> Self::Values { self.iter().map(|(_, v)| v) }
 
     fn insert(&self, b: B, a: A) -> Option<A> { self.me.raw.borrow_mut().mut_bwd().insert(b, a) }
     fn expunge(&self, b: B) -> Option<A> { self.me.raw.borrow_mut().mut_bwd().expunge(b) }

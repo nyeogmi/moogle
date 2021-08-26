@@ -23,9 +23,9 @@ pub trait SharedAnyToOne<'a, K: Id, V: Id> {
 
     fn contains(&self, k: K, v: V) -> bool { self.get(k) == Some(v) }
 
-    fn iter(&'a self) -> Self::Iter;
-    fn keys(&'a self) -> Self::Keys;
-    fn values(&'a self) -> Self::Values;
+    fn iter(&self) -> Self::Iter;
+    fn keys(&self) -> Self::Keys;
+    fn values(&self) -> Self::Values;
 
     fn insert(&self, k: K, v: V) -> Option<V>;
     fn expunge(&self, k: K) -> Option<V>;
@@ -52,10 +52,10 @@ pub trait SharedAnyToSet<'a, K: Id, V: Id> {
 
     fn contains(&'a self, k: K, v: V) -> bool { self.get(k).contains(v) }
 
-    fn iter(&'a self) -> Self::Iter;
-    fn keys(&'a self) -> Self::Keys;
-    fn sets(&'a self) -> Self::Sets;
-    fn values(&'a self) -> Self::Values;
+    fn iter(&self) -> Self::Iter;
+    fn keys(&self) -> Self::Keys;
+    fn sets(&self) -> Self::Sets;
+    fn values(&self) -> Self::Values;
 
     fn insert(&self, k: K, v: V) -> Option<V>;  // note: only evicts if the inserted item was an exact duplicate
     fn expunge(&self, k: K) -> Self::Expunge;

@@ -54,16 +54,20 @@ impl <'a, A: Id, B: Id> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 
     fn contains(&'a self, b: B, a: A) -> bool { self.me.raw.borrow().bwd().get(b).contains(a) }
 
-    fn iter(&'a self) -> Self::Iter {
-        self.keys().flat_map(move |k| self.get(k).iter().map(move |v| (k, v)))
+    fn iter(&self) -> Self::Iter {
+        let me = self.me;
+        self.keys().flat_map(move |k| me.bwd().get(k).iter().map(move |v| (k, v)))
     }
-    fn keys(&'a self) -> Self::Keys {
+    fn keys(&self) -> Self::Keys {
         BwdKeysIterator::<'a, A, B> { 
             iter: KeysIterator::new(self.me.raw.create_interior_tree_range())
         }
     }
-    fn sets(&'a self) -> Self::Sets { self.keys().map(move |k| (k, self.get(k))) }
-    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
+    fn sets(&self) -> Self::Sets { 
+        let me = self.me;
+        self.keys().map(move |k| (k, me.bwd().get(k))) 
+    }
+    fn values(&self) -> Self::Values { self.iter().map(|(_, v)| v) }
 
     fn insert(&self, b: B, a: A) -> Option<A> { self.me.raw.borrow_mut().mut_bwd().insert(b, a) }
     fn expunge(&self, b: B) -> Self::Expunge { self.me.raw.borrow_mut().mut_bwd().expunge(b) }

@@ -21,13 +21,13 @@ impl <'a, A: Id, B: Id> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
     fn contains_key(&self, a: A) -> bool { self.me.raw.borrow().fwd().contains_key(a) }
     fn len(&self) -> usize { self.me.raw.borrow().fwd().len() }
 
-    fn iter(&'a self) -> Self::Iter {
+    fn iter(&self) -> Self::Iter {
         FwdFlatIterator::<'a, A, B> {
             iter: FlatIterator::new(self.me.raw.create_interior_tree_range()),
         }
     }
-    fn keys(&'a self) -> Self::Keys { self.iter().map(|(k, _)| k) }
-    fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
+    fn keys(&self) -> Self::Keys { self.iter().map(|(k, _)| k) }
+    fn values(&self) -> Self::Values { self.iter().map(|(_, v)| v) }
 
     fn insert(&self, a: A, b: B) -> Option<B> { self.me.raw.borrow_mut().mut_fwd().insert(a, b) }
     fn expunge(&self, a: A) -> Option<B> { self.me.raw.borrow_mut().mut_fwd().expunge(a) }

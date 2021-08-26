@@ -27,3 +27,6 @@ pub use shared_junctions::set_to_set as shared_set_to_set;
 pub use shared_junctions::SetToSet;
 
 pub use methods::*;
+
+#[cfg(test)]
+mod test_props;
