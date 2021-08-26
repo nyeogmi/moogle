@@ -1,10 +1,13 @@
 # Moogle
 
-`moogle` is a relational data store in Rust. Specifically, it does junction tables. 
+`moogle` is a collection of types for representing data relationally in Rust. The library assumes you're using a slot map implementation of some kind to assign IDs to the values in your program -- it then provides mapping types called junctions that allow you to track the relationships from IDs to each other. 
 
-In less jargon-y words: it's an alternative to `HashMap` with a lot of desirable properties for games and simulations. It only operates on `Copy` values because it's designed to be used with a table system that assigns IDs or UUIDs.
+`moogle` provides data structures for the four two-way relationship types used in database programming: one-to-one, one-to-many, many-to-one, and many-to-many. For each type, it provides two data structures:
 
-I haven't profiled it yet, but based on its implementation (a very thin layer over `BTreeMap`) I'd expect it to be within an order of magnitude of `BTreeMap` in all respects. 
+- a "raw" data structure (ex. RawOneToOne): a very thin implementation of that relationship over `BTreeMap`
+- a "shared" data structure (ex. OneToOne): a shareable implementation of that relationship over `RefCell<BTreeMap>`
+
+I haven't profiled the Moogle types yet, but based on their implementation (a very thin layer over `BTreeMap`) I'd expect the raw types to be within an order of magnitude of `BTreeMap` in all cases. In cases with a lot of reads and few writes, I would expect the shared versions to approach `BTreeMap` performance but not reach it.
 
 ## Motivation
 
@@ -54,14 +57,14 @@ println!("Jochen's items: {:?}", inventory.get(jochen));
 
 This is not ideal. You can deal with this by tracking whose inventory the stick was taken from before calling `inventory.insert()`, but it would be better not to have to keep track of conservation of mass by changing your game logic.
 
-`moogle` solves this problem by tracking the answer to "who owned the stick previously?" using a data structure called a bimap, then using SQL-style constraints to make sure only one person owns it:
+`moogle` solves this problem by tracking the answer to "who owned the stick previously?" using a data structure called a junction, then using SQL-style constraints to make sure only one person owns it:
 
 ```rust
-let inventory: RawOneToSet<NPC, Item> = RawOneToSet::new();
-inventory.mut_fwd().insert(russell, stick);
-inventory.mut_fwd().insert(russell, beetle);
-inventory.mut_fwd().insert(russell, pokemon_card);
-inventory.mut_fwd().insert(jochen, pizza);
+let inventory: OneToSet<NPC, Item> = OneToSet::new();
+inventory.fwd().insert(russell, stick);
+inventory.fwd().insert(russell, beetle);
+inventory.fwd().insert(russell, pokemon_card);
+inventory.fwd().insert(jochen, pizza);
 
 println!("Russell's items: {:?}", inventory.fwd().get(russell)); 
     // => stick, beetle, pokemon_card
@@ -85,36 +88,35 @@ If you're a Rust or Python guy, you can think of it as two dictionaries that are
 
 (What does "kept in sync" mean? Formally, it means that for every `(NPC, Item)` stored in the first one, there's a corresponding `(Item, NPC)` in the second, and vice versa.)
 
-It also solves several other problems:
+`moogle` also solves several other problems:
 
 - the order of the items in a Moogle store is deterministic (based on `Ord`)
 - the data type of the result you get reflects whether a `UNIQUE` constraint could have existed
-- calling `.get_mut()` on a map resulting in a Set gets you a Set which automatically updates the opposed dictionary when you alter it.
 
-In case the last property needs some some demonstration:
+`moogle` also provides some shorthand for code that would like to pretend that sets inside the map are actually owned by the objects that use them. The shorthand is patterned after the Entry API for existing maps, and looks like this:
 
 ```rust
-    let inventory: RawOneToSet<NPC, Item> = RawOneToSet::new();
-    inventory.mut_fwd().insert(russell, stick);
-    inventory.mut_fwd().insert(russell, beetle);
-    inventory.mut_fwd().insert(russell, pokemon_card);
-    inventory.mut_fwd().insert(jochen, pizza);
+    let inventory: OneToSet<NPC, Item> = OneToSet::new();
+    inventory.fwd().insert(russell, stick);
+    inventory.fwd().insert(russell, beetle);
+    inventory.fwd().insert(russell, pokemon_card);
+    inventory.fwd().insert(jochen, pizza);
 
-    // this is exactly equivalent to calling inventory.mut_fwd().insert(jochen, stick)
-    let jochens_items = inventory.mut_fwd().get_mut(jochen);
+    // shorthand: this is exactly equivalent to calling inventory.fwd().insert(jochen, stick)
+    let jochens_items = inventory.fwd().get(jochen);
     jochens_items.insert(stick);
 ```
 
-The UNIQUE constraints Moogle provides are completely optional; the RawSetToSet type has none, meaning that the answer to any `get()` operation is a set instead of a single result:
+The UNIQUE constraints Moogle provides are completely optional; the SetToSet type has none, meaning that the answer to any `get()` operation is a set instead of a single result:
 
 ```rust
-    let visits: RawSetToSet<NPC, Place> = RawSetToSet::new();
-    visits.mut_fwd().insert(marcia, paris);
-    visits.mut_fwd().insert(marcia, rome);
-    visits.mut_fwd().insert(gavin, rome);
-    visits.mut_fwd().insert(gavin, london);
-    visits.mut_fwd().insert(smith, london);
-    visits.mut_fwd().insert(smith, venice);
+    let visits: SetToSet<NPC, Place> = SetToSet::new();
+    visits.fwd().insert(marcia, paris);
+    visits.fwd().insert(marcia, rome);
+    visits.fwd().insert(gavin, rome);
+    visits.fwd().insert(gavin, london);
+    visits.fwd().insert(smith, london);
+    visits.fwd().insert(smith, venice);
 
     println!("Who visits London? {:?}", visits.bwd().get(london));
         // => smith, gavin
@@ -122,28 +124,143 @@ The UNIQUE constraints Moogle provides are completely optional; the RawSetToSet 
         // => rome, london
 
     // modify set without using key
-    visits.mut_fwd().get_mut(gavin).insert(texas);
+    visits.fwd().get(gavin).insert(texas);
     println!("Where does Gavin visit? {:?}", visits.fwd().get(gavin));
         // => rome, london, texas
 ```
 
+## Sharing
+
+Many programming languages allow programmers to write code that modifies a data structure at the same time as it iterates over it. 
+
+For instance, try entering this into Python 3:
+
+```python
+>>> xs = {1: "a", 2: "b"}
+>>> for x, y in xs.items():
+...   xs[3] = "c"
+...   print(x, y)
+...
+1 a
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+RuntimeError: dictionary changed size during iteration
+```
+
+The situation is more tense in Rust, where holding a reference to an entry inside a data structure or an iterator over that data structure prevents mutation of the whole data structure, even if that mutation would not change the data structure's shape. That means that this benign Python program is not allowed to be written in Rust:
+
+```python
+>>> xs = {1: "scarf", 2: "ghost", "beware the": []}
+>>> for x, y in xs.items():
+...   if x in [1, 2]:
+...     xs["beware the"].append(y)
+...   else:
+...     print(x, y)
+...
+beware the ['scarf', 'ghost']
+```
+
+(There are numerous other reasons why this program is impossible to write in Rust, most involving the type system, but the `.append()` in particular is a direct violation of the borrow made by items().)
+
+In `moogle`, all of these operations are gated by `RefCell` for safety and given predictable behavior. In particular:
+
+- If an iterator has lexicographically passed an element, then it can't observe changes to that element. Otherwise, it can.
+- The only internal data structure you're allowed to hold a pointer to is a `FwdSet`/`BwdSet`, and it sees all changes made to the underlying store as soon as they happen.
+
+This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawSetToSet` etc instead of `SetToSet` etc, which will make it impossible for it to affect you, and which will probably offer you a performance boost too. 
+
+The implementation is pretty sane but makes use of `unsafe` in about two places. (see the `Formally` section for details) Unsafe code is fuzzed for safety.
+
+For a quick demo of the lexicographic passage rule, see the below:
+
+```rust
+    let letters: OneToSet<Alphabet, char> = SetToOne::new();
+    letters.fwd().insert(english, 'a');
+    letters.fwd().insert(english, 'b');
+    letters.fwd().insert(english, 'd');
+    letters.fwd().insert(english, 'e');
+
+    let asc = letters.fwd().items();
+
+    asc.next();  // (english, 'a')
+    asc.next();  // (english, 'b')
+    asc.next();  // (english, 'd')
+    letters.fwd().insert(english, 'c')
+
+    // don't see the 'c', we already passed it
+    asc.next();  // (english, 'e')
+    asc.next();  // None
+```
+
+This works for reversed iterators too -- in that case, if we passed it in reverse, we don't see it.
+
+For a quick demo of the held set rule:
+
+```rust
+    let possessions: SetToSet<Ghost, Item> = SetToSet::new();
+    let sylvian_possessions = possessions.fwd().get(sylvian);
+    println!("{:?}", sylvian_possessions.get());  // nothing
+    possessions.fwd().insert(sylvian, scarf)
+    println!("{:?}", sylvian_possessions.get());  // {scarf}
+```
+
+These two rules play along without surprises:
+
+```rust
+    let letters: OneToSet<Alphabet, char> = SetToOne::new();
+    let english_letters = letters.fwd().get(english);
+    letters.fwd().insert(english, 'a');
+    letters.fwd().insert(english, 'b'):
+    letters.fwd().insert(english, 'c');
+    letters.fwd().insert(english, 'd');
+
+    let desc = english_letters.items().rev();
+
+    desc.next();  // 'd'
+    desc.next();  // 'c'
+    desc.next();  // 'b'
+    letters.fwd().insert(english, 'f')
+
+    // don't see the 'f', we already passed it
+    desc.next();  // 'a'
+    desc.next();  // None
+```
 
 
 ## Formally
 
-`moogle` provides an internal bimap type with four public specializations. Each is equivalent to a different kind of junction table.
+`moogle` provides two sets of junctions -- the `raw` set and the `shared` set. 
+
+### The raw set
+
+The raw set is an internal bimap type with four public specializations. Each is equivalent to a different kind of relation.
 
 The four specializations are below:
 
-- `RawOneToOne`: maps `Optional<T>` to `Optional<T>`
-- `RawOneToSet`: maps `Optional<T>` to `BTreeSet<T>`
-- `RawSetToOne`: maps `BTreeSet<T>` to `Optional<T>`
-- `RawSetToSet`: maps `BTreeSet<T>` to `BTreeSet<T>`
+- `RawOneToOne<A, B>`: maps `Optional<A>` to `Optional<B>`
+- `RawOneToSet<A, B>`: maps `Optional<A>` to `BTreeSet<B>`
+- `RawSetToOne<A, B>`: maps `BTreeSet<A>` to `Optional<B>`
+- `RawSetToSet<A, B>`: maps `BTreeSet<A>` to `BTreeSet<B>`
 
-The bimap is based on `BTreeMap`, meaning it preserves `Ord` of elements and is deterministic. Elements are required to be `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
+The underlying mapping is done using `BTreeMap`, which preserves `Ord` of elements and is deterministic. Elements are required to be `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
 
 Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `RawOneToSet<usize, char>` corresponds to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
 
 (What does "kept in sync" mean? Formally: `insert()`ing on one automatically `insert()`s on the other such that each pair `(a, b)` in one has a corresponding pair `(b, a)` in the other.)
 
-`Set`-based bimaps provide an `Entry`-like interface for insertions, as well as an iterator that averts that interface.
+`Set`-based junctions provide an `Entry`-like interface for insertions, as well as an iterator that averts that interface.
+
+### The shared set
+
+The shared set consists of four more types. Here's their names and their respective implementations:
+
+- OneToOne<A, B>: `MoogCell<RawOneToOne<A, B>>`
+- OneToSet<A, B>: `MoogCell<RawOneToSet<A, B>>`
+- SetToOne<A, B>: `MoogCell<RawSetToOne<A, B>>`
+- SetToSet<A, B>: `MoogCell<RawSetToSet<A, B>>`
+
+`MoogCell` is a special type implemented using `unsafe` code which allows the user to keep refs to the inside of a `RefCell` by keeping a generation counter on the `RefCell` itself. 
+
+Each time the generation counter is incremented, the refs pointing into the `MoogCell` are invalidated.
+
+(Currently this is safety-tested with QuickCheck. Future safety-testing will involve miri too.)
