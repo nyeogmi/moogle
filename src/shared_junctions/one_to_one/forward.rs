@@ -3,7 +3,7 @@ use super::SharedOneToOne;
 use crate::methods::SharedAnyToOne;
 use crate::methods::{ViewAnyToOne, AnyToOne};
 
-use crate::junctions::one_to_one::OneToOne;
+use crate::raw_junctions::one_to_one::RawOneToOne;
 
 use super::super::iterators::{FlatIterator};
 
@@ -35,7 +35,7 @@ impl <'a, A: Id, B: Id> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
 // == iterators ==
 struct FwdFlatIterator<'a, A: Id, B: Id> {
-    iter: FlatIterator<'a, OneToOne<A, B>, A, B>,
+    iter: FlatIterator<'a, RawOneToOne<A, B>, A, B>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for FwdFlatIterator<'a, A, B> {

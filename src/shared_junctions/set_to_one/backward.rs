@@ -6,7 +6,7 @@ use crate::methods::{SharedAnyToSet, SharedSet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
 use crate::methods::{ViewSet, Set};
 
-use crate::junctions::set_to_one::SetToOne;
+use crate::raw_junctions::set_to_one::RawSetToOne;
 
 use std::collections::BTreeSet;
 
@@ -19,7 +19,7 @@ use crate::structures::VSet;
 pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedSetToOne<A, B> }
 pub struct BwdSet<'a, A: Id, B: Id> { 
     parent: &'a SharedSetToOne<A, B>, 
-    cache: InteriorVSet<'a, SetToOne<A, B>, B, A>,
+    cache: InteriorVSet<'a, RawSetToOne<A, B>, B, A>,
     key: B 
 }
 
@@ -90,7 +90,7 @@ impl <'a, A: Id, B: Id> SharedSet<'a, A> for BwdSet<'a, A, B> {
 
 // == iterators ==
 struct BwdKeysIterator<'a, A: Id, B: Id> {
-    iter: KeysIterator<'a, SetToOne<A, B>, B, A>,
+    iter: KeysIterator<'a, RawSetToOne<A, B>, B, A>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for BwdKeysIterator<'a, A, B> {
@@ -108,7 +108,7 @@ impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdKeysIterator<'a, A, B> {
 }
 
 struct BwdSetIterator<'a, A: Id, B: Id> {
-    iter: SetIterator<'a, SetToOne<A, B>, B, A>,
+    iter: SetIterator<'a, RawSetToOne<A, B>, B, A>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for BwdSetIterator<'a, A, B> {

@@ -8,36 +8,36 @@ use crate::structures::{ToSet, VSet, MSet};
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct SetToSet<A: Id, B: Id> {
+pub struct RawSetToSet<A: Id, B: Id> {
     pub(crate) fwd: ToSet<A, B>,
     pub(crate) bwd: ToSet<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> SetToSet<A, B> {
-    pub fn new() -> SetToSet<A, B> {
-        SetToSet { fwd: ToSet::new(), bwd: ToSet::new() }
+impl<A: Id, B: Id> RawSetToSet<A, B> {
+    pub fn new() -> RawSetToSet<A, B> {
+        RawSetToSet { fwd: ToSet::new(), bwd: ToSet::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut SetToSet<A, B>);
+pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawSetToSet<A, B>);
 pub struct MFwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, A, B>, &'a mut ToSet<B, A>);
-pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut SetToSet<A, B>);
+pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawSetToSet<A, B>);
 pub struct MBwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, B, A>, &'a mut ToSet<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a SetToSet<A, B>);
+pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a RawSetToSet<A, B>);
 pub struct VFwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a SetToSet<A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a RawSetToSet<A, B>);
 pub struct VBwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, B, A>);
 
 // == Accessors ==
-impl<A: Id, B: Id> SetToSet<A, B> {
+impl<A: Id, B: Id> RawSetToSet<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> SetToSet<A, B> {
+impl<A: Id, B: Id> RawSetToSet<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 

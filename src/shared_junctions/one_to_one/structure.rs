@@ -2,18 +2,18 @@ use crate::keybound::Id;
 
 use super::{Fwd, Bwd};
 
-use crate::junctions::one_to_one::OneToOne;
+use crate::raw_junctions::one_to_one::RawOneToOne;
 use super::super::moogcell::MoogCell;
 
 // == Data structure ==
 pub struct SharedOneToOne<A: Id, B: Id> {
-    pub(super) raw: MoogCell<OneToOne<A, B>>
+    pub(super) raw: MoogCell<RawOneToOne<A, B>>
 }
 
 // == Constructor et al ==
 impl<A: Id, B: Id> SharedOneToOne<A, B> {
     pub fn new() -> SharedOneToOne<A, B> {
-        SharedOneToOne { raw: MoogCell::new(OneToOne::new()) }
+        SharedOneToOne { raw: MoogCell::new(RawOneToOne::new()) }
     }
 
     pub fn fwd(&self) -> Fwd<A, B> { Fwd { me: self } }

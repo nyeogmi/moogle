@@ -9,34 +9,34 @@ use crate::structures::{ToSet, VSet, MSet};
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct SetToOne<A: Id, B: Id> {
+pub struct RawSetToOne<A: Id, B: Id> {
     pub(crate) fwd: ToOne<A, B>,
     pub(crate) bwd: ToSet<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> SetToOne<A, B> {
-    pub fn new() -> SetToOne<A, B> {
-        SetToOne { fwd: ToOne::new(), bwd: ToSet::new() }
+impl<A: Id, B: Id> RawSetToOne<A, B> {
+    pub fn new() -> RawSetToOne<A, B> {
+        RawSetToOne { fwd: ToOne::new(), bwd: ToSet::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut SetToOne<A, B>);
-pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut SetToOne<A, B>);
+pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawSetToOne<A, B>);
+pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawSetToOne<A, B>);
 pub struct MBwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, B, A>, &'a mut ToOne<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a SetToOne<A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a SetToOne<A, B>);
+pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a RawSetToOne<A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a RawSetToOne<A, B>);
 pub struct VBwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, B, A>);
 
 // == Accessors ==
-impl<A: Id, B: Id> SetToOne<A, B> {
+impl<A: Id, B: Id> RawSetToOne<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> SetToOne<A, B> {
+impl<A: Id, B: Id> RawSetToOne<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 

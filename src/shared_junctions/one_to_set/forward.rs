@@ -6,7 +6,7 @@ use crate::methods::{SharedAnyToSet, SharedSet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
 use crate::methods::{ViewSet, Set};
 
-use crate::junctions::one_to_set::OneToSet;
+use crate::raw_junctions::one_to_set::RawOneToSet;
 
 use std::collections::BTreeSet;
 
@@ -19,7 +19,7 @@ use crate::structures::VSet;
 pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedOneToSet<A, B> }
 pub struct FwdSet<'a, A: Id, B: Id> { 
     parent: &'a SharedOneToSet<A, B>, 
-    cache: InteriorVSet<'a, OneToSet<A, B>, A, B>,
+    cache: InteriorVSet<'a, RawOneToSet<A, B>, A, B>,
     key: A 
 }
 
@@ -90,7 +90,7 @@ impl <'a, A: Id, B: Id> SharedSet<'a, B> for FwdSet<'a, A, B> {
 
 // == iterators ==
 struct FwdKeysIterator<'a, A: Id, B: Id> {
-    iter: KeysIterator<'a, OneToSet<A, B>, A, B>,
+    iter: KeysIterator<'a, RawOneToSet<A, B>, A, B>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for FwdKeysIterator<'a, A, B> {
@@ -108,7 +108,7 @@ impl <'a, A: Id, B: Id> DoubleEndedIterator for FwdKeysIterator<'a, A, B> {
 }
 
 struct FwdSetIterator<'a, A: Id, B: Id> {
-    iter: SetIterator<'a, OneToSet<A, B>, A, B>,
+    iter: SetIterator<'a, RawOneToSet<A, B>, A, B>,
 }
 
 impl<'a, A: Id, B: Id> Iterator for FwdSetIterator<'a, A, B> {

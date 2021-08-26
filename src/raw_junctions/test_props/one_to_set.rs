@@ -5,10 +5,10 @@
 use super::fixture::*;
 use crate::methods::*;
 use super::properties::{symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
-use super::properties::{pair_unique}; 
-use crate::SetToSet as T;
+use super::properties::{pair_unique, bwd_unique}; 
+use crate::RawOneToSet as T;
 
-impl crate::SetToSet<u16, i16> {
+impl crate::RawOneToSet<u16, i16> {
     fn prepare(fun: &Routine) -> Self {
         let mut set = Self::new();
         for phase in &fun.0 {
@@ -30,6 +30,7 @@ impl crate::SetToSet<u16, i16> {
         set
     }
 }
+
 
 #[quickcheck]
 fn test_fwd_equal(f: Routine) -> bool {
@@ -65,4 +66,10 @@ fn test_symmetrical(f: Routine) -> bool {
 fn test_pair_unique(f: Routine) -> bool {
     let xs = T::prepare(&f);
     pair_unique(xs.fwd().iter().collect())
+}
+
+#[quickcheck]
+fn test_bwd_unique(f: Routine) -> bool {
+    let xs = T::prepare(&f);
+    bwd_unique(xs.bwd().iter().collect())
 }
