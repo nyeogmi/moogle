@@ -10,7 +10,7 @@ use super::super::iterators::{FlatIterator};
 use crate::keybound::Id;
 
 // == type ==
-pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a SetToOne<A, B> }
+pub struct Fwd<'a, A: Id, B: Id> { pub(in crate::shared_junctions) me: &'a SetToOne<A, B> }
 
 impl <'a, A: Id, B: Id> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;

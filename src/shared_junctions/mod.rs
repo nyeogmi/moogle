@@ -1,3 +1,5 @@
+mod debug_impl;
+
 pub(crate) mod moogcell;
 pub(crate) mod iterators;
 pub(crate) mod range_utils;

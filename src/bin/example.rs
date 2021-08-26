@@ -21,4 +21,5 @@ fn main() {
         println!("Found: {:?}", i);
         s.fwd().get('a').insert(6);
     }
+    println!("{:?}", s);
 }

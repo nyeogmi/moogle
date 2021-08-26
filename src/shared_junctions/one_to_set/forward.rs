@@ -16,16 +16,16 @@ use super::super::iterators::{KeysIterator, SetIterator};
 use crate::structures::VSet;
 
 // == type ==
-pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a OneToSet<A, B> }
+pub struct Fwd<'a, A: Id, B: Id> { pub(in crate::shared_junctions) me: &'a OneToSet<A, B> }
 pub struct FwdSet<'a, A: Id, B: Id> { 
-    parent: &'a OneToSet<A, B>, 
+    pub(in crate::shared_junctions) parent: &'a OneToSet<A, B>, 
     cache: InteriorVSet<'a, RawOneToSet<A, B>, A, B>,
-    key: A 
+    pub(in crate::shared_junctions) key: A 
 }
 
 // == caching ==
 impl <'a, A: Id, B: Id> FwdSet<'a, A, B> {
-    fn fetch(&self) -> VSet<'a, A, B> {
+    pub(in crate::shared_junctions) fn fetch(&self) -> VSet<'a, A, B> {
         return self.cache.get_or_compute(
             |o| o.fwd().get_short(self.key).0,
         )

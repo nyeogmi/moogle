@@ -7,7 +7,7 @@ use super::super::moogcell::MoogCell;
 
 // == Data structure ==
 pub struct SetToOne<A: Id, B: Id> {
-    pub(super) raw: MoogCell<RawSetToOne<A, B>>
+    pub(in crate::shared_junctions) raw: MoogCell<RawSetToOne<A, B>>
 }
 
 // == Constructor et al ==
