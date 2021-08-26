@@ -6,14 +6,14 @@ use crate::raw_junctions::set_to_set::RawSetToSet;
 use super::super::moogcell::MoogCell;
 
 // == Data structure ==
-pub struct SharedSetToSet<A: Id, B: Id> {
+pub struct SetToSet<A: Id, B: Id> {
     pub(super) raw: MoogCell<RawSetToSet<A, B>>
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> SharedSetToSet<A, B> {
-    pub fn new() -> SharedSetToSet<A, B> {
-        SharedSetToSet { raw: MoogCell::new(RawSetToSet::new()) }
+impl<A: Id, B: Id> SetToSet<A, B> {
+    pub fn new() -> SetToSet<A, B> {
+        SetToSet { raw: MoogCell::new(RawSetToSet::new()) }
     }
 
     pub fn fwd(&self) -> Fwd<A, B> { Fwd { me: self } }

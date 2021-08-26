@@ -1,4 +1,4 @@
-use super::SharedSetToSet;
+use super::SetToSet;
 
 use crate::keybound::Id;
 
@@ -16,9 +16,9 @@ use super::super::iterators::{KeysIterator, SetIterator};
 use crate::structures::VSet;
 
 // == type ==
-pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedSetToSet<A, B> }
+pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SetToSet<A, B> }
 pub struct BwdSet<'a, A: Id, B: Id> { 
-    parent: &'a SharedSetToSet<A, B>, 
+    parent: &'a SetToSet<A, B>, 
     cache: InteriorVSet<'a, RawSetToSet<A, B>, B, A>,
     key: B 
 }

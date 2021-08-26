@@ -1,7 +1,7 @@
 use moogle::*;
 
 fn main() {
-    let s: SharedOneToSet::<char, usize> = SharedOneToSet::new();
+    let s: OneToSet::<char, usize> = OneToSet::new();
     let fwd = s.fwd().get('a');
 
     fwd.insert(4);

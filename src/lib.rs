@@ -18,12 +18,12 @@ pub use raw_junctions::{set_to_one, RawSetToOne};
 pub use raw_junctions::{set_to_set, RawSetToSet};
 
 pub use shared_junctions::one_to_one as shared_one_to_one;
-pub use shared_junctions::SharedOneToOne;
+pub use shared_junctions::OneToOne;
 pub use shared_junctions::one_to_set as shared_one_to_set;
-pub use shared_junctions::SharedOneToSet;
+pub use shared_junctions::OneToSet;
 pub use shared_junctions::set_to_one as shared_set_to_one;
-pub use shared_junctions::SharedSetToOne;
+pub use shared_junctions::SetToOne;
 pub use shared_junctions::set_to_set as shared_set_to_set;
-pub use shared_junctions::SharedSetToSet;
+pub use shared_junctions::SetToSet;
 
 pub use methods::*;

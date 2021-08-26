@@ -1,4 +1,4 @@
-use super::SharedOneToSet;
+use super::OneToSet;
 
 use crate::methods::SharedAnyToOne;
 use crate::methods::{ViewAnyToOne, AnyToOne};
@@ -10,7 +10,7 @@ use super::super::iterators::{FlatIterator};
 use crate::keybound::Id;
 
 // == type ==
-pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedOneToSet<A, B> }
+pub struct Bwd<'a, A: Id, B: Id> { pub(super) me: &'a OneToSet<A, B> }
 
 impl <'a, A: Id, B: Id> SharedAnyToOne<'a, B, A> for Bwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;

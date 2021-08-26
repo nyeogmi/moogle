@@ -1,4 +1,4 @@
-use super::SharedOneToSet;
+use super::OneToSet;
 
 use crate::keybound::Id;
 
@@ -16,9 +16,9 @@ use super::super::iterators::{KeysIterator, SetIterator};
 use crate::structures::VSet;
 
 // == type ==
-pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a SharedOneToSet<A, B> }
+pub struct Fwd<'a, A: Id, B: Id> { pub(super) me: &'a OneToSet<A, B> }
 pub struct FwdSet<'a, A: Id, B: Id> { 
-    parent: &'a SharedOneToSet<A, B>, 
+    parent: &'a OneToSet<A, B>, 
     cache: InteriorVSet<'a, RawOneToSet<A, B>, A, B>,
     key: A 
 }
