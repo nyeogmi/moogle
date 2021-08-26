@@ -57,7 +57,7 @@ This is not ideal. You can deal with this by tracking whose inventory the stick 
 `moogle` solves this problem by tracking the answer to "who owned the stick previously?" using a data structure called a bimap, then using SQL-style constraints to make sure only one person owns it:
 
 ```rust
-let inventory: OneToSet<NPC, Item> = OneToSet::new();
+let inventory: RawOneToSet<NPC, Item> = RawOneToSet::new();
 inventory.mut_fwd().insert(russell, stick);
 inventory.mut_fwd().insert(russell, beetle);
 inventory.mut_fwd().insert(russell, pokemon_card);
@@ -81,7 +81,7 @@ println!("Jochen's items: {:?}", inventory.fwd().get(jochen));
 
 If you're a relational database guy, you can think of a Moogle bimap as a junction table with two columns where either column can be `UNIQUE`, and constraint violations are dealt with by deleting the older row.
 
-If you're a Rust or Python guy, you can think of it as two dictionaries that are kept in sync. For instance, the `SetToOne` used above is exactly equivalent to a `BTreeMap<NPC, BTreeSet<Item>>` paired with a `BTreeMap<Item, NPC>`.
+If you're a Rust or Python guy, you can think of it as two dictionaries that are kept in sync. For instance, the `RawSetToOne` used above is exactly equivalent to a `BTreeMap<NPC, BTreeSet<Item>>` paired with a `BTreeMap<Item, NPC>`.
 
 (What does "kept in sync" mean? Formally, it means that for every `(NPC, Item)` stored in the first one, there's a corresponding `(Item, NPC)` in the second, and vice versa.)
 
@@ -94,7 +94,7 @@ It also solves several other problems:
 In case the last property needs some some demonstration:
 
 ```rust
-    let inventory: OneToSet<NPC, Item> = OneToSet::new();
+    let inventory: RawOneToSet<NPC, Item> = RawOneToSet::new();
     inventory.mut_fwd().insert(russell, stick);
     inventory.mut_fwd().insert(russell, beetle);
     inventory.mut_fwd().insert(russell, pokemon_card);
@@ -105,10 +105,10 @@ In case the last property needs some some demonstration:
     jochens_items.insert(stick);
 ```
 
-The UNIQUE constraints Moogle provides are completely optional; the SetToSet type has none, meaning that the answer to any `get()` operation is a set instead of a single result:
+The UNIQUE constraints Moogle provides are completely optional; the RawSetToSet type has none, meaning that the answer to any `get()` operation is a set instead of a single result:
 
 ```rust
-    let visits: SetToSet<NPC, Place> = SetToSet::new();
+    let visits: RawSetToSet<NPC, Place> = RawSetToSet::new();
     visits.mut_fwd().insert(marcia, paris);
     visits.mut_fwd().insert(marcia, rome);
     visits.mut_fwd().insert(gavin, rome);
@@ -135,14 +135,14 @@ The UNIQUE constraints Moogle provides are completely optional; the SetToSet typ
 
 The four specializations are below:
 
-- `OneToOne`: maps `Optional<T>` to `Optional<T>`
-- `OneToSet`: maps `Optional<T>` to `BTreeSet<T>`
-- `SetToOne`: maps `BTreeSet<T>` to `Optional<T>`
-- `SetToSet`: maps `BTreeSet<T>` to `BTreeSet<T>`
+- `RawOneToOne`: maps `Optional<T>` to `Optional<T>`
+- `RawOneToSet`: maps `Optional<T>` to `BTreeSet<T>`
+- `RawSetToOne`: maps `BTreeSet<T>` to `Optional<T>`
+- `RawSetToSet`: maps `BTreeSet<T>` to `BTreeSet<T>`
 
 The bimap is based on `BTreeMap`, meaning it preserves `Ord` of elements and is deterministic. Elements are required to be `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
 
-Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `OneToSet<usize, char>` corresponds to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
+Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `RawOneToSet<usize, char>` corresponds to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
 
 (What does "kept in sync" mean? Formally: `insert()`ing on one automatically `insert()`s on the other such that each pair `(a, b)` in one has a corresponding pair `(b, a)` in the other.)
 
