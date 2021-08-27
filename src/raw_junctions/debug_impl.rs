@@ -20,7 +20,7 @@ fn set<'a, V: Debug+Id>(f: &mut Formatter<'_>, s: &'a impl ViewSet<'a, V>) -> fm
 }
 
 // == one-to-one ==
-impl<A: Debug+Id, B: Debug+Id> Debug for super::one_to_one::OneToOne<A, B> {
+impl<A: Debug+Id, B: Debug+Id> Debug for super::one_to_one::RawOneToOne<A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { self.fwd().fmt(f) }
 }
 
@@ -41,7 +41,7 @@ impl<A: Debug+Id, B: Debug+Id> Debug for super::one_to_one::VBwd<'_, A, B> {
 }
 
 // == one-to-set ==
-impl<A: Debug+Id, B: Debug+Id> Debug for super::one_to_set::OneToSet<A, B> {
+impl<A: Debug+Id, B: Debug+Id> Debug for super::one_to_set::RawOneToSet<A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { self.fwd().fmt(f) }
 }
 
@@ -70,7 +70,7 @@ impl<A: Debug+Id, B: Debug+Id> Debug for super::one_to_set::VBwd<'_, A, B> {
 }
 
 // == set-to-one ==
-impl<A: Debug+Id, B: Debug+Id> Debug for super::set_to_one::SetToOne<A, B> {
+impl<A: Debug+Id, B: Debug+Id> Debug for super::set_to_one::RawSetToOne<A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { self.fwd().fmt(f) }
 }
 
@@ -99,7 +99,7 @@ impl<A: Debug+Id, B: Id> Debug for super::set_to_one::VBwdSet<'_, A, B> {
 }
 
 // == set-to-set ==
-impl<A: Debug+Id, B: Debug+Id> Debug for super::set_to_set::SetToSet<A, B> {
+impl<A: Debug+Id, B: Debug+Id> Debug for super::set_to_set::RawSetToSet<A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { self.fwd().fmt(f) }
 }
 

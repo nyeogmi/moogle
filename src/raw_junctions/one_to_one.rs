@@ -5,32 +5,32 @@ use crate::methods::{ViewAnyToOne, AnyToOne};
 use crate::structures::{ToOne};
 
 // == Data structure ==
-pub struct OneToOne<A: Id, B: Id> {
+pub struct RawOneToOne<A: Id, B: Id> {
     pub(crate) fwd: ToOne<A, B>,
     pub(crate) bwd: ToOne<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> OneToOne<A, B> {
-    pub fn new() -> OneToOne<A, B> {
-        OneToOne { fwd: ToOne::new(), bwd: ToOne::new() }
+impl<A: Id, B: Id> RawOneToOne<A, B> {
+    pub fn new() -> RawOneToOne<A, B> {
+        RawOneToOne { fwd: ToOne::new(), bwd: ToOne::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut OneToOne<A, B>);
-pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut OneToOne<A, B>);
+pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToOne<A, B>);
+pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToOne<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a OneToOne<A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a OneToOne<A, B>);
+pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToOne<A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToOne<A, B>);
 
 // == Accessors ==
-impl<A: Id, B: Id> OneToOne<A, B> {
+impl<A: Id, B: Id> RawOneToOne<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> OneToOne<A, B> {
+impl<A: Id, B: Id> RawOneToOne<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 

@@ -1,4 +1,4 @@
-#![feature(min_type_alias_impl_trait)]
+#![feature(type_alias_impl_trait)]
 
 #[cfg(test)]
 extern crate quickcheck;
@@ -7,13 +7,26 @@ extern crate quickcheck;
 extern crate quickcheck_macros;
 
 pub mod methods;
-mod junctions;
+mod raw_junctions;
+mod shared_junctions;
 mod keybound;
 mod structures;
 
-pub use junctions::{one_to_one, OneToOne};
-pub use junctions::{one_to_set, OneToSet};
-pub use junctions::{set_to_one, SetToOne};
-pub use junctions::{set_to_set, SetToSet};
+pub use raw_junctions::{one_to_one, RawOneToOne};
+pub use raw_junctions::{one_to_set, RawOneToSet};
+pub use raw_junctions::{set_to_one, RawSetToOne};
+pub use raw_junctions::{set_to_set, RawSetToSet};
+
+pub use shared_junctions::one_to_one as shared_one_to_one;
+pub use shared_junctions::OneToOne;
+pub use shared_junctions::one_to_set as shared_one_to_set;
+pub use shared_junctions::OneToSet;
+pub use shared_junctions::set_to_one as shared_set_to_one;
+pub use shared_junctions::SetToOne;
+pub use shared_junctions::set_to_set as shared_set_to_set;
+pub use shared_junctions::SetToSet;
 
 pub use methods::*;
+
+#[cfg(test)]
+mod test_props;

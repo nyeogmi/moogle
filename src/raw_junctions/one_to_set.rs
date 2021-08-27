@@ -9,34 +9,34 @@ use crate::structures::{ToSet, VSet, MSet};
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct OneToSet<A: Id, B: Id> {
+pub struct RawOneToSet<A: Id, B: Id> {
     pub(crate) fwd: ToSet<A, B>,
     pub(crate) bwd: ToOne<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> OneToSet<A, B> {
-    pub fn new() -> OneToSet<A, B> {
-        OneToSet { fwd: ToSet::new(), bwd: ToOne::new() }
+impl<A: Id, B: Id> RawOneToSet<A, B> {
+    pub fn new() -> RawOneToSet<A, B> {
+        RawOneToSet { fwd: ToSet::new(), bwd: ToOne::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut OneToSet<A, B>);
+pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToSet<A, B>);
 pub struct MFwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, A, B>, &'a mut ToOne<B, A>);
-pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut OneToSet<A, B>);
+pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToSet<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a OneToSet<A, B>);
+pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToSet<A, B>);
 pub struct VFwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a OneToSet<A, B>);
+pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToSet<A, B>);
 
 // == Accessors ==
-impl<A: Id, B: Id> OneToSet<A, B> {
+impl<A: Id, B: Id> RawOneToSet<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> OneToSet<A, B> {
+impl<A: Id, B: Id> RawOneToSet<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 
@@ -83,6 +83,10 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
+}
+
+impl<'a, A: Id, B: Id> VFwd<'a, A, B> {
+    pub(crate) fn get_short(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
 }
 
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {

@@ -2,28 +2,28 @@
 // Specifically, if you see "unused import", you can probably bet that the property listed here
 // is not provided (or at least not tested for)
 // This lets you spot-check what each bimap has
-use super::fixture::*;
+use crate::test_props::fixture::*;
 use crate::methods::*;
-use super::properties::{symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
-use super::properties::{pair_unique, fwd_unique, bwd_unique}; 
-use crate::OneToOne as T;
+use crate::test_props::properties::{symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
+use crate::test_props::properties::{pair_unique, fwd_unique, bwd_unique}; 
+use crate::RawOneToOne as T;
 
-impl crate::OneToOne<u16, i16> {
+impl crate::RawOneToOne<u16, i16> {
     fn prepare(fun: &Routine) -> Self {
         let mut set = Self::new();
         for phase in &fun.0 {
             match phase {
                 Phase::Insert{fwd, bwd} => {
-                    for (a, b) in fwd { set.mut_fwd().insert(*a, *b); }
-                    for (b, a) in bwd { set.mut_bwd().insert(*b, *a); }
+                    for (a, b) in items_only(fwd) { set.mut_fwd().insert(a, b); }
+                    for (b, a) in items_only(bwd) { set.mut_bwd().insert(b, a); }
                 },
                 Phase::Remove{fwd, bwd} => {
-                    for (a, b) in fwd { set.mut_fwd().remove(*a, *b); }
-                    for (b, a) in bwd { set.mut_bwd().remove(*b, *a); }
+                    for (a, b) in items_only(fwd) { set.mut_fwd().remove(a, b); }
+                    for (b, a) in items_only(bwd) { set.mut_bwd().remove(b, a); }
                 },
                 Phase::Expunge{fwd, bwd} => {
-                    for a in fwd { set.mut_fwd().expunge(*a); }
-                    for b in bwd { set.mut_bwd().expunge(*b); }
+                    for a in items_only(fwd) { set.mut_fwd().expunge(a); }
+                    for b in items_only(bwd) { set.mut_bwd().expunge(b); }
                 }
             }
         }

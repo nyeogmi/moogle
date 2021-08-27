@@ -3,7 +3,7 @@ use crate::methods::{EvictSet, ViewSet};
 
 use std::collections::BTreeMap;
 
-pub(crate) struct ToOne<K: Id, V: Id>(BTreeMap<K, V>);
+pub(crate) struct ToOne<K: Id, V: Id>(pub(crate) BTreeMap<K, V>);
 
 impl<K: Id, V: Id> ToOne<K, V> {
     pub fn keys<'a>(&'a self) -> impl 'a+Iterator<Item=K> { self.0.keys().map(|k| *k) }

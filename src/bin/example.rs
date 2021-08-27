@@ -1,24 +1,25 @@
 use moogle::*;
 
 fn main() {
-    let mut l: SetToOne::<char, usize> = SetToOne::new();
+    let s: OneToSet::<char, usize> = OneToSet::new();
+    let fwd = s.fwd().get('a');
 
-    l.mut_fwd().insert('A', 456);
-    l.mut_fwd().insert('B', 456);
-    l.mut_fwd().insert('C', 456);
-    l.mut_fwd().insert('W', 456);
+    fwd.insert(4);
+    fwd.insert(5);
 
-    l.mut_fwd().insert('W', 1001);
-    l.mut_fwd().insert('x', 1001);
-    l.mut_fwd().insert('y', 1001);
-    l.mut_fwd().insert('z', 1001);
-
-    println!("Hello!!! {:?}", l);
-
-    for i in l.bwd().get(456).iter() {
-        println!("Item: {}", i);
+    for i in fwd.iter() {
+        fwd.insert(3);
+        println!("Found: {:?}", i)
     }
 
-    println!("Map (forwards): {:?}", l.fwd());
-    println!("Map (backwards): {:?}", l.bwd());
+    for i in s.fwd().iter() {
+        println!("Found: {:?}", i)
+    }
+
+    println!("reverse:");
+    for i in s.bwd().iter() {
+        println!("Found: {:?}", i);
+        s.fwd().get('a').insert(6);
+    }
+    println!("{:?}", s);
 }
