@@ -11,13 +11,19 @@ pub(crate) struct ToSet<K, V> {
 }
 
 impl<K: Id, V: Id> ToSet<K, V> {
-    pub fn iter<'a>(&'a self) -> impl 'a+Iterator<Item=(K, V)> { 
+    pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(K, V)> { 
         self.elements.iter().flat_map(|(k, vs)|
             vs.iter().map(move |v| (*k, *v))
         )
     }
-    pub fn keys<'a>(&'a self) -> impl 'a+Iterator<Item=K> { self.elements.keys().map(|k| *k) }
-    pub fn sets<'a>(&'a self) -> impl 'a+Iterator<Item=(K, &BTreeSet<V>)> { self.elements.iter().map(|(k, v)| (*k, v) ) }
+
+    pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=K> { 
+        self.elements.keys().map(|k| *k) 
+    }
+
+    pub fn sets<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(K, &BTreeSet<V>)> { 
+        self.elements.iter().map(|(k, v)| (*k, v) ) 
+    }
 }
 
 // TODO: Track _total_ len (as in, number of pairs)
@@ -100,7 +106,7 @@ impl<'a, K: Id, V: Id> EvictSet<'a, K, V> for MSet<'a, K, V> {
 
 
 impl<'a, K: Id, V: Id> ViewSet<'a, V> for VSet<'a, K, V> {
-    type Iter = impl 'a+Iterator<Item=V>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool {
         match self.0 {
@@ -122,7 +128,7 @@ impl<'a, K: Id, V: Id> ViewSet<'a, V> for VSet<'a, K, V> {
 }
 
 impl<'a, K: Id, V: Id> ViewSet<'a, V> for MSet<'a, K, V> {
-    type Iter = impl Iterator<Item=V>;
+    type Iter = impl DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool { 
         match self.1.elements.get(&self.0) {

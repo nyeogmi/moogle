@@ -6,9 +6,15 @@ use std::collections::BTreeMap;
 pub(crate) struct ToOne<K: Id, V: Id>(pub(crate) BTreeMap<K, V>);
 
 impl<K: Id, V: Id> ToOne<K, V> {
-    pub fn keys<'a>(&'a self) -> impl 'a+Iterator<Item=K> { self.0.keys().map(|k| *k) }
-    pub fn iter<'a>(&'a self) -> impl 'a+Iterator<Item=(K, V)> { self.0.iter().map(|(k, v)| (*k, *v) ) }
-    pub fn values<'a>(&'a self) -> impl 'a+Iterator<Item=V> { self.0.values().map(|v| *v ) }
+    pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=K> { 
+        self.0.keys().map(|k| *k) 
+    }
+    pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(K, V)> { 
+        self.0.iter().map(|(k, v)| (*k, *v) ) 
+    }
+    pub fn values<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=V> { 
+        self.0.values().map(|v| *v ) 
+    }
 }
 
 impl<'a, K: Id, V: Id> ToOne<K, V> {
@@ -75,7 +81,7 @@ impl<'a, K: Id, V: Id> EvictSet<'a, K, V> for MOne<'a, K, V> {
 }
 
 impl<'a, K: Id, V: Id> ViewSet<'a, V> for VOne<'a, K, V> {
-    type Iter = impl 'a+Iterator<Item=V>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool {
         match self.0 {
@@ -97,7 +103,7 @@ impl<'a, K: Id, V: Id> ViewSet<'a, V> for VOne<'a, K, V> {
 }
 
 impl<'a, K: Id, V: Id> ViewSet<'a, V> for MOne<'a, K, V> {
-    type Iter = impl 'a+Iterator<Item=V>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool { 
         match self.1.0.get(&self.0) {

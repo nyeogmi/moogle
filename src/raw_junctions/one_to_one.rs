@@ -54,9 +54,9 @@ impl<'a, A: Id, B: Id> AnyToOne<'a, A, B> for MFwd<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for MFwd<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=(A, B)>;
-    type Keys = impl 'a+Iterator<Item=A>;
-    type Values = impl 'a+Iterator<Item=B>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=A>;
+    type Values = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn get(&self, a: A) -> Option<B> { self.0.fwd.get(a).as_option() }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
@@ -68,9 +68,9 @@ impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for MFwd<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for VFwd<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=(A, B)>;
-    type Keys = impl 'a+Iterator<Item=A>;
-    type Values = impl 'a+Iterator<Item=B>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=A>;
+    type Values = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn get(&self, a: A) -> Option<B> { self.0.fwd.get(a).as_option() }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
@@ -99,9 +99,9 @@ impl<'a, A: Id, B: Id> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=(B, A)>;
-    type Keys = impl 'a+Iterator<Item=B>;
-    type Values = impl 'a+Iterator<Item=A>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=B>;
+    type Values = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn get(&self, b: B) -> Option<A> { self.0.bwd.get(b).as_option() }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
@@ -113,9 +113,9 @@ impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for VBwd<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=(B, A)>;
-    type Keys = impl 'a+Iterator<Item=B>;
-    type Values = impl 'a+Iterator<Item=A>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=B>;
+    type Values = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn get(&self, b: B) -> Option<A> { self.0.bwd.get(b).as_option() }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }

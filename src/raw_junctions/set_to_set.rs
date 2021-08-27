@@ -69,10 +69,10 @@ impl<'a, A: Id, B: Id> AnyToSet<'a, A, B> for MFwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
-    type Iter = impl 'a+Iterator<Item=(A, B)>;
-    type Keys = impl 'a+Iterator<Item=A>;
-    type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
-    type Values = impl 'a+Iterator<Item=B>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=A>;
+    type Sets = impl 'a+DoubleEndedIterator<Item=(A, Self::VMulti)>;
+    type Values = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn get(&'a self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
@@ -91,10 +91,10 @@ impl<'a, A: Id, B: Id> VFwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
-    type Iter = impl 'a+Iterator<Item=(A, B)>;
-    type Keys = impl 'a+Iterator<Item=A>;
-    type Sets = impl 'a+Iterator<Item=(A, Self::VMulti)>;
-    type Values = impl 'a+Iterator<Item=B>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=A>;
+    type Sets = impl 'a+DoubleEndedIterator<Item=(A, Self::VMulti)>;
+    type Values = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn get(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
     fn contains_key(&self, a: A) -> bool { self.0.fwd.contains_key(a) }
@@ -126,7 +126,7 @@ impl<'a, A: Id, B: Id> Set<'a, B> for MFwdSet<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewSet<'a, B> for MFwdSet<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=B>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn contains(&self, b: B) -> bool { self.0.contains(b) }
     fn len(&self) -> usize { self.0.len() }
@@ -135,7 +135,7 @@ impl<'a, A: Id, B: Id> ViewSet<'a, B> for MFwdSet<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewSet<'a, B> for VFwdSet<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=B>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn contains(&self, b: B) -> bool { self.0.contains(b) }
     fn len(&self) -> usize { self.0.len() }
@@ -169,10 +169,10 @@ impl<'a, A: Id, B: Id> AnyToSet<'a, B, A> for MBwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, B, A> for MBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
-    type Iter = impl 'a+Iterator<Item=(B, A)>;
-    type Keys = impl 'a+Iterator<Item=B>;
-    type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
-    type Values = impl 'a+Iterator<Item=A>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=B>;
+    type Sets = impl 'a+DoubleEndedIterator<Item=(B, Self::VMulti)>;
+    type Values = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn get(&'a self, b: B) -> VBwdSet<'a, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
@@ -191,10 +191,10 @@ impl<'a, A: Id, B: Id> VBwd<'a, A, B> {
 
 impl<'a, A: Id, B: Id> ViewAnyToSet<'a, B, A> for VBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
-    type Iter = impl 'a+Iterator<Item=(B, A)>;
-    type Keys = impl 'a+Iterator<Item=B>;
-    type Sets = impl 'a+Iterator<Item=(B, Self::VMulti)>;
-    type Values = impl 'a+Iterator<Item=A>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
+    type Keys = impl 'a+DoubleEndedIterator<Item=B>;
+    type Sets = impl 'a+DoubleEndedIterator<Item=(B, Self::VMulti)>;
+    type Values = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn get(&self, b: B) -> VBwdSet<'a, A, B> { VBwdSet(self.0.bwd.get(b)) }
     fn contains_key(&self, b: B) -> bool { self.0.bwd.contains_key(b) }
@@ -226,7 +226,7 @@ impl<'a, A: Id, B: Id> Set<'a, A> for MBwdSet<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewSet<'a, A> for MBwdSet<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=A>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn contains(&self, a: A) -> bool { self.0.contains(a) }
     fn len(&self) -> usize { self.0.len() }
@@ -235,7 +235,7 @@ impl<'a, A: Id, B: Id> ViewSet<'a, A> for MBwdSet<'a, A, B> {
 }
 
 impl<'a, A: Id, B: Id> ViewSet<'a, A> for VBwdSet<'a, A, B> {
-    type Iter = impl 'a+Iterator<Item=A>;
+    type Iter = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn contains(&self, a: A) -> bool { self.0.contains(a) }
     fn len(&self) -> usize { self.0.len() }
