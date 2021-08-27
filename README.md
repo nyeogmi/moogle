@@ -131,7 +131,7 @@ The UNIQUE constraints Moogle provides are completely optional; the SetToSet typ
 
 ## Sharing
 
-Many programming languages allow programmers to write code that modifies a data structure at the same time as it iterates over it. 
+Many programming languages allow programmers to write code that modifies a data structure at the same time as it iterates over it. Usually the defined behavior for this situation is to crash as soon as the situation is noticed.
 
 For instance, try entering this into Python 3:
 
@@ -147,7 +147,7 @@ Traceback (most recent call last):
 RuntimeError: dictionary changed size during iteration
 ```
 
-The situation is more tense in Rust, where holding a reference to an entry inside a data structure or an iterator over that data structure prevents mutation of the whole data structure, even if that mutation would not change the data structure's shape. That means that this benign Python program is not allowed to be written in Rust:
+The situation is more tense in Rust, where more things are disallowed. Holding a reference to an entry inside a data structure or an iterator over that data structure prevents mutation of any part of the data structure, even if that mutation would not change the data structure's shape. That means that this benign Python program is not allowed to be written in Rust:
 
 ```python
 >>> xs = {1: "scarf", 2: "ghost", "beware the": []}
@@ -165,7 +165,7 @@ beware the ['scarf', 'ghost']
 In `moogle`, all of these operations are gated by `RefCell` for safety and given predictable behavior. In particular:
 
 - If an iterator has lexicographically passed an element, then it can't observe changes to that element. Otherwise, it can.
-- The only internal data structure you're allowed to hold a pointer to is a `FwdSet`/`BwdSet`, and it sees all changes made to the underlying store as soon as they happen.
+- The only interior data structure you're allowed to hold a pointer to is a `FwdSet`/`BwdSet`, and it sees all changes made to the underlying store as soon as they happen.
 
 This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawSetToSet` etc instead of `SetToSet` etc, which will make it impossible for it to affect you, and which will probably offer you a performance boost too. 
 
