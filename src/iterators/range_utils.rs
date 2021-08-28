@@ -54,7 +54,7 @@ pub(crate) fn make_toset_key_value_range<K: IdLike, V: IdLike>(
 }
 
 #[inline]
-pub fn make_btreemap_range<K: Copy+Ord, V>(
+pub fn make_map_range<K: Copy+Ord, V>(
     vs: &BTreeMap<K, V>, front_cursor: Option<K>, back_cursor: Option<K>,
 ) -> btree_map::Range<'_, K, V> {
     match (front_cursor, back_cursor) {

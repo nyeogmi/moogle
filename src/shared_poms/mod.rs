@@ -33,7 +33,7 @@ impl<T: 'static> Pom<T> {
     // can't neatly provide iter_mut or values_mut because they both would require a moogcell borrow
     pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(Id<T>, &'a T)> {
         PomIterator {
-            iter: BTreeMapIterator::new(self.raw.create_interior_btreemap_range())
+            iter: BTreeMapIterator::new(self.raw.create_interior_map_range())
         }
     }
     pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=Id<T>> {

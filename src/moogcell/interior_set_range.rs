@@ -28,7 +28,7 @@ impl<'a, T, Item: Copy+'a> Clone for InteriorSetRange<'a, T, Item> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_btreeset_range<'a, Item: Copy+'a>(&'a self) -> InteriorSetRange<'a, T, Item> { 
+    pub fn create_interior_set_range<'a, Item: Copy+'a>(&'a self) -> InteriorSetRange<'a, T, Item> { 
         InteriorSetRange { 
             owner: self, 
             state: Cell::new(0), 
