@@ -1,5 +1,5 @@
 use crate::id::IdLike;
-use crate::structures::{ToOne, ToSet};
+use crate::structures::ToSet;
 
 use std::collections::{BTreeMap, btree_set, btree_map};
 
@@ -16,7 +16,7 @@ pub(crate) struct BTreeMapIterator<'a, Parent, K: IdLike, V: 'a> {
     done: bool,
 }
 
-impl<'a, Parent, K: IdLike, V: 'a> BTreeMapIterator<'a, Parent, K, V> {
+impl<'a, Parent, K: IdLike, V: Copy> BTreeMapIterator<'a, Parent, K, V> {
     pub(crate) fn new(iterator: InteriorMapRange<'a, Parent, K, V>) -> BTreeMapIterator<'a, Parent, K, V> {
         BTreeMapIterator {
             iterator,
@@ -27,44 +27,44 @@ impl<'a, Parent, K: IdLike, V: 'a> BTreeMapIterator<'a, Parent, K, V> {
         }
     }
 
-    fn reconstitute(
+    fn reconstitute<T>(
         &mut self, 
-        open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>
-    ) -> &mut btree_map::Range<'a, K, V> {
+        open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>,
+        body: impl FnOnce(&mut btree_map::Range<'_, K, V>) -> T
+    ) -> T {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute(|xs| {
-            range_utils::make_map_range(open_parent(xs), fc, bc)
-        });
+        let iterator = self.iterator.get_or_compute(
+            |xs| { range_utils::make_map_range(open_parent(xs), fc, bc) },
+            |range| { body(range) },
+        );
         iterator
     }
 
     pub(crate) fn next(
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>
-    ) -> Option<(K, &'a V)> {
+    ) -> Option<(K, V)> {
         if self.done { return None; }
 
-        let iter = self.reconstitute(open_parent);
-        let kv = iter.next();
+        let kv = self.reconstitute(open_parent, |iter| { iter.next().map(|(k, v)| (*k, *v)) });
         match kv {
             None => {self.done = true; None}
-            Some((k, v)) => { self.front_cursor = Some(*k); Some((*k, v))}
+            Some((k, v)) => { self.front_cursor = Some(k); Some((k, v))}
         }
     }
 
     pub(crate) fn next_back(
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>
-    ) -> Option<(K, &'a V)> { 
+    ) -> Option<(K, V)> { 
         if self.done { return None; }
 
-        let iter = self.reconstitute(open_parent);
-        let kv = iter.next_back();
+        let kv = self.reconstitute(open_parent, |iter| { iter.next_back().map(|(k, v)| (*k, *v)) });
         match kv {
             None => {self.done = true; None}
-            Some((k, v)) => { self.back_cursor = Some(*k); Some((*k, v))}
+            Some((k, v)) => { self.back_cursor = Some(k); Some((k, v))}
         }
     }
 }
@@ -88,17 +88,18 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
         }
     }
 
-    fn reconstitute<V: IdLike>(
+    fn reconstitute<V: IdLike, T>(
         &mut self, 
-        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
-    ) -> &mut btree_set::Range<'a, K> {
+        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>,
+        body: impl FnOnce(&mut btree_set::Range<'_, K>) -> T
+    ) -> T {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute(|xs| {
-            range_utils::make_toset_key_range(open_parent(xs), fc, bc)
-        });
-        iterator
+        self.iterator.get_or_compute(
+            |xs| { range_utils::make_toset_key_range(open_parent(xs), fc, bc) },
+            |range| { body(range) },
+        )
     }
 
     pub(crate) fn next<V: IdLike>(
@@ -107,8 +108,7 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
     ) -> Option<K> {
         if self.done { return None; }
 
-        let iter = self.reconstitute(open_parent);
-        let k = iter.next().map(|k| *k); 
+        let k = self.reconstitute(open_parent, |iter| { iter.next().map(|k| *k) });
         self.front_cursor = k; 
         if k == None { self.done = true; }
         k
@@ -120,8 +120,7 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
     ) -> Option<K> { 
         if self.done { return None; }
 
-        let iter = self.reconstitute(open_parent);
-        let k = iter.next_back().map(|k| *k); 
+        let k = self.reconstitute(open_parent, |iter| { iter.next_back().map(|k| *k) });
         self.back_cursor = k; 
         if k == None { self.done = true; }
         k
@@ -156,21 +155,20 @@ impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
         }
     }
 
-    fn reconstitute(
+    fn reconstitute<T>(
         &mut self, 
-        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
-    ) -> &mut btree_set::Range<'a, (K, V)> {
+        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>,
+        body: impl FnOnce(&mut btree_set::Range<'_, (K, V)>) -> T
+    ) -> T {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
         let fe = self.front_element;
         let be = self.back_element;
 
-        let iterator = self.iterator.get_or_compute(|xs| {
-            range_utils::make_toset_key_value_range(
-                open_parent(xs), fc, bc, fe, be
-            )
-        });
-        iterator
+        self.iterator.get_or_compute(
+            |xs| { range_utils::make_toset_key_value_range(open_parent(xs), fc, bc, fe, be) },
+            |range| { body(range) },
+        )
     }
 
     pub(crate) fn next(
@@ -179,8 +177,7 @@ impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
     ) -> Option<(K, V)> {
         if self.done { return None; }
 
-        let iter = self.reconstitute(open_parent);
-        let k = iter.next().map(|k| *k); 
+        let k = self.reconstitute(open_parent, |iter| { iter.next().map(|k| *k) });
         self.front_cursor = k; 
         if k == None { self.done = true; }
         k
@@ -192,80 +189,9 @@ impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
     ) -> Option<(K, V)> { 
         if self.done { return None; }
 
-        let iter = self.reconstitute(open_parent);
-        let k = iter.next_back().map(|k| *k); 
+        let k = self.reconstitute(open_parent, |iter| { iter.next_back().map(|k| *k) });
         self.back_cursor = k; 
         if k == None { self.done = true; }
         k
-    }
-}
-
-pub(crate) struct FlatIterator<'a, Parent, K: IdLike, V: IdLike> {
-    iterator: InteriorMapRange<'a, Parent, K, V>,
-
-    front_cursor: Option<K>,
-    back_cursor: Option<K>,
-    done: bool,
-}
-
-impl<'a, Parent, K: IdLike, V: IdLike> FlatIterator<'a, Parent, K, V> {
-    pub(crate) fn new(iterator: InteriorMapRange<'a, Parent, K, V>) -> FlatIterator<'a, Parent, K, V> {
-        FlatIterator {
-            iterator,
-            front_cursor: None,
-            back_cursor: None,
-            done: false,
-        }
-    }
-
-    fn reconstitute(
-        &mut self, 
-        open_parent: impl FnOnce(&Parent) -> &ToOne<K, V>
-    ) -> &mut btree_map::Range<'a, K, V> {
-        let fc = self.front_cursor;
-        let bc = self.back_cursor;
-
-        let iterator = self.iterator.get_or_compute(|xs| {
-            range_utils::make_map_range(&open_parent(xs).0, fc, bc)
-        });
-        iterator
-    }
-
-    pub(crate) fn next(
-        &mut self, 
-        open_parent: impl FnOnce(&Parent) -> &ToOne<K, V>
-    ) -> Option<(K, V)> {
-        if self.done { return None; }
-
-        let iter = self.reconstitute(open_parent);
-        match iter.next().map(|(k, v)| (*k, *v)) {
-            Some((k, v)) => {
-                self.front_cursor = Some(k);
-                Some((k, v))
-            },
-            None => { 
-                self.done = true;
-                None
-            }
-        }
-    }
-
-    pub(crate) fn next_back(
-        &mut self, 
-        open_parent: impl FnOnce(&Parent) -> &ToOne<K, V>
-    ) -> Option<(K, V)> { 
-        if self.done { return None; }
-
-        let iter = self.reconstitute(open_parent);
-        match iter.next_back().map(|(k, v)| (*k, *v)) {
-            Some((k, v)) => {
-                self.back_cursor = Some(k);
-                Some((k, v))
-            },
-            None => { 
-                self.done = true;
-                None
-            }
-        }
     }
 }

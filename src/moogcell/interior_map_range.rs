@@ -40,10 +40,11 @@ impl<T> MoogCell<T> {
 }
 
 impl<'a, T, K: IdLike, V: 'a> InteriorMapRange<'a, T, K, V> {
-    pub(crate) fn get_or_compute(
+    pub(crate) fn get_or_compute<Out>(
         &mut self, 
-        compute: impl for<'b> FnOnce(&'b T) -> btree_map::Range<'b, K, V>
-    ) -> &mut btree_map::Range<'a, K, V> {
+        compute: impl for<'b> FnOnce(&'b T) -> btree_map::Range<'b, K, V>,
+        body: impl for<'e> FnOnce(&mut btree_map::Range<'e, K, V>) -> Out
+    ) -> Out {
         // panic if someone else borrowed our owner
         // (which would imply there is a &mut to it somewhere)
         let borrow = self.owner.borrow();
@@ -58,7 +59,8 @@ impl<'a, T, K: IdLike, V: 'a> InteriorMapRange<'a, T, K, V> {
             self.value = MaybeUninit::new(longer_value);
         }
 
-        let new_ptr: &mut btree_map::Range<'a, K, V> = unsafe { self.value.assume_init_mut() };
-        new_ptr
+        let result = body(unsafe { self.value.assume_init_mut() });
+        std::mem::drop(borrow);
+        result
     }
 }

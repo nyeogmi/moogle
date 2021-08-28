@@ -31,6 +31,7 @@ impl<T: 'static> Pom<T> {
     pub fn len(&self) -> usize { self.raw.borrow().len() }
 
     // can't neatly provide iter_mut or values_mut because they both would require a moogcell borrow
+    /*
     pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(Id<T>, &'a T)> {
         PomIterator {
             iter: BTreeMapIterator::new(self.raw.create_interior_map_range())
@@ -42,12 +43,14 @@ impl<T: 'static> Pom<T> {
     pub fn values<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=&'a T> {
         self.iter().map(move |(_, v)| v)
     }
+    */
 }
 
 struct PomIterator<'a, T: 'static> {
     iter: BTreeMapIterator<'a, RawPom<T>, Id<T>, T>,
 }
 
+/*
 impl<'a, T: 'static> Iterator for PomIterator<'a, T> {
     type Item = (Id<T>, &'a T);
 
@@ -57,3 +60,4 @@ impl<'a, T: 'static> Iterator for PomIterator<'a, T> {
 impl <'a, T: 'static> DoubleEndedIterator for PomIterator<'a, T> {
     fn next_back(&mut self) -> std::option::Option<Self::Item> { self.iter.next_back(|p| &p.members) }
 }
+*/

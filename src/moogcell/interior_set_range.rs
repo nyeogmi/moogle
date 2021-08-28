@@ -38,10 +38,11 @@ impl<T> MoogCell<T> {
 }
 
 impl<'a, T, Item: Copy+'a> InteriorSetRange<'a, T, Item> {
-    pub(crate) fn get_or_compute(
+    pub(crate) fn get_or_compute<Out>(
         &mut self, 
-        compute: impl for<'b> FnOnce(&'b T) -> btree_set::Range<'b, Item> 
-    ) -> &mut btree_set::Range<'a, Item> {
+        compute: impl for<'b> FnOnce(&'b T) -> btree_set::Range<'b, Item>,
+        body: impl for<'e> FnOnce(&mut btree_set::Range<'e, Item>) -> Out
+    ) -> Out {
         // panic if someone else borrowed our owner
         // (which would imply there is a &mut to it somewhere)
         let borrow = self.owner.borrow();
@@ -55,6 +56,8 @@ impl<'a, T, Item: Copy+'a> InteriorSetRange<'a, T, Item> {
             self.value = MaybeUninit::new(long_value);
         }
 
-        unsafe { self.value.assume_init_mut() }
+        let result = body(unsafe { self.value.assume_init_mut() });
+        std::mem::drop(borrow);
+        result
     }
 }

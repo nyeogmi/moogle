@@ -5,7 +5,7 @@ use crate::methods::{ViewAnyToOne, AnyToOne};
 
 use crate::raw_junctions::one_to_one::RawOneToOne;
 
-use crate::iterators::{FlatIterator};
+use crate::iterators::BTreeMapIterator;
 
 use crate::id::IdLike;
 
@@ -23,7 +23,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         FwdFlatIterator::<'a, A, B> {
-            iter: FlatIterator::new(self.me.raw.create_interior_map_range()),
+            iter: BTreeMapIterator::new(self.me.raw.create_interior_map_range()),
         }
     }
     fn keys(&self) -> Self::Keys { self.iter().map(|(k, _)| k) }
@@ -35,19 +35,19 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
 // == iterators ==
 struct FwdFlatIterator<'a, A: IdLike, B: IdLike> {
-    iter: FlatIterator<'a, RawOneToOne<A, B>, A, B>,
+    iter: BTreeMapIterator<'a, RawOneToOne<A, B>, A, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdFlatIterator<'a, A, B> {
     type Item = (A, B);
 
     fn next(&mut self) -> Option<(A, B)> {
-        self.iter.next(|p| &p.fwd)
+        self.iter.next(|p| &p.fwd.0)
     }
 }
 
 impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdFlatIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
-        self.iter.next_back(|p| &p.fwd)
+        self.iter.next_back(|p| &p.fwd.0)
     }
 }
