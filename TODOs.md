@@ -5,7 +5,6 @@ Small:
 
 - Relax the lifetime constraints involving raw junctions. (Should be possible now that the vset implementation is changed.)
 - Get rid of interior VSets. VSets no longer contain anything special so there's no need for them to exist.
-- Entry API for poms
 - Actually unit test poms
 - Better `len()` implementation for ToSet
 
