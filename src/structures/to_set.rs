@@ -1,4 +1,3 @@
-// TODO: Use unwrap_unchecked for min_v/max_v, or possibly MaybeUninit
 use crate::id::IdLike;
 use crate::methods::{EvictSet, ViewSet};
 
@@ -7,7 +6,6 @@ use std::collections::btree_set;
 use std::ops::RangeBounds;
 
 pub(crate) struct ToSet<K, V> {
-    min_max_v: Option<(V, V)>, 
     keys: BTreeSet<K>,
     elements: BTreeSet<(K, V)>,
 }
@@ -27,20 +25,11 @@ impl<K: IdLike, V: IdLike> ToSet<K, V> {
     }
 }
 
-// TODO: Track _total_ len (as in, number of pairs)
 impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
     pub fn new() -> Self { ToSet { 
         keys: BTreeSet::new(),
         elements: BTreeSet::new(), 
-        min_max_v: None,
     } }
-
-    fn update_min_max(&mut self, value: V) {
-        self.min_max_v = Some(match self.min_max_v {
-            None => (value, value),
-            Some((mn, mx)) => (mn.min(value), mx.max(value)),
-        })
-    }
 
     pub fn insert(&mut self, key: K, value: V, _on_evict: impl FnOnce(K, V)) -> Option<V> { 
         let is_new = self.elements.insert((key, value));
@@ -49,7 +38,6 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
         // however, to caller, pretend we evicted
         if is_new { 
             self.keys.insert(key);
-            self.update_min_max(value);
             None 
         } else { 
             Some(value) 
@@ -61,10 +49,7 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
             // doesn't matter
             self.elements.range(..)
         } else { 
-
-            // TODO: Use unwrap_unchecked
-            let (min_v, max_v) = self.min_max_v.unwrap();
-            self.elements.range((key, min_v)..=(key, max_v))
+            self.elements.range((key, V::id_min_value())..=(key, V::id_max_value()))
         }
     }
 
@@ -81,16 +66,13 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
             // doesn't matter
             self.elements.range(..)
         } else {
-            // TODO: Use unwrap_unchcked
-            let (min_v, max_v) = self.min_max_v.unwrap();
             let v0_real = match v0 {
-                // more restrictive
                 Some(x) => x,
-                None => min_v,
+                None => V::id_min_value(),
             };
             let v1_real = match v1 {
                 Some(x) => x,
-                None => max_v,
+                None => V::id_max_value(),
             };
             self.elements.range((key, v0_real)..=(key, v1_real))
         }

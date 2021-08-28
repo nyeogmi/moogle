@@ -1,23 +1,58 @@
 use std::marker::PhantomData;
 
 pub trait IdLike: Copy+Ord+PartialEq+'static {
-
+    // named to avoid stepping on other libraries etc
+    fn id_min_value() -> Self;
+    fn id_max_value() -> Self;
 }
 
-// TODO: Others?
-impl IdLike for char {}
+impl IdLike for char {
+    // NOTE: This depends on the definition of unicode and could change
+    #[inline] fn id_min_value() -> Self { '\u{000000}' }
+    #[inline] fn id_max_value() -> Self { '\u{10ffff}' }
+}
 
-impl IdLike for usize {}
-impl IdLike for u64 {}
-impl IdLike for u32 {}
-impl IdLike for u16 {}
-impl IdLike for u8 {}
+impl IdLike for usize {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for u64 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for u32 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for u16 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for u8 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
 
-impl IdLike for isize {}
-impl IdLike for i64 {}
-impl IdLike for i32 {}
-impl IdLike for i16 {}
-impl IdLike for i8 {}
+impl IdLike for isize {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for i64 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for i32 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for i16 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
+impl IdLike for i8 {
+    #[inline] fn id_min_value() -> Self { Self::min_value() }
+    #[inline] fn id_max_value() -> Self { Self::max_value() }
+}
 
 // internal ID type, use if you have nothing else!!
 pub struct Id<T>(pub(crate) u64, PhantomData<*const T>);
@@ -66,5 +101,6 @@ impl<T> Ord for Id<T> {
 }
 
 impl<T: 'static> IdLike for Id<T> {
-
+    #[inline] fn id_min_value() -> Self { Id(u64::min_value(), PhantomData) }
+    #[inline] fn id_max_value() -> Self { Id(u64::max_value(), PhantomData) }
 }
