@@ -3,13 +3,13 @@ use crate::structures::{ToOne, ToSet, VSet};
 
 use std::collections::{BTreeMap, btree_set, btree_map};
 
-use crate::moogcell::{InteriorTupSetRange, InteriorTreeRange, InteriorSetRange, InteriorVSet};
+use crate::moogcell::{InteriorBTreeMapRange, InteriorSetRange, InteriorVSet};
 
 mod range_utils;
 
 // == iterators ==
 pub(crate) struct KeyValuesIterator<'a, Parent, K: IdLike, V: 'a> {
-    iterator: InteriorTreeRange<'a, Parent, K, V>,
+    iterator: InteriorBTreeMapRange<'a, Parent, K, V>,
 
     front_cursor: Option<K>,
     back_cursor: Option<K>,
@@ -17,7 +17,7 @@ pub(crate) struct KeyValuesIterator<'a, Parent, K: IdLike, V: 'a> {
 }
 
 impl<'a, Parent, K: IdLike, V: 'a> KeyValuesIterator<'a, Parent, K, V> {
-    pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, V>) -> KeyValuesIterator<'a, Parent, K, V> {
+    pub(crate) fn new(iterator: InteriorBTreeMapRange<'a, Parent, K, V>) -> KeyValuesIterator<'a, Parent, K, V> {
         KeyValuesIterator {
             iterator,
 
@@ -34,7 +34,7 @@ impl<'a, Parent, K: IdLike, V: 'a> KeyValuesIterator<'a, Parent, K, V> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute(|xs| {
+        let iterator = self.iterator.get_or_compute_arg(|xs| {
             range_utils::make_btreemap_range(open_parent(xs), fc, bc)
         });
         iterator
@@ -95,7 +95,7 @@ impl<'a, Parent, K: IdLike> KeysIterator<'a, Parent, K> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute(|xs| {
+        let iterator = self.iterator.get_or_compute_arg(|xs| {
             range_utils::make_toset_range(open_parent(xs), fc, bc)
         });
         iterator
@@ -130,7 +130,7 @@ impl<'a, Parent, K: IdLike> KeysIterator<'a, Parent, K> {
 
 pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
     cache: InteriorVSet<'a, Parent, K, V>,
-    iterator: InteriorTupSetRange<'a, Parent, K, V>,
+    iterator: InteriorSetRange<'a, Parent, (K, V)>,
 
     key: K,
     front_cursor: Option<V>,
@@ -141,7 +141,7 @@ pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
 impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
     pub(crate) fn new(
         cache: InteriorVSet<'a, Parent, K, V>,
-        iterator: InteriorTupSetRange<'a, Parent, K, V>,
+        iterator: InteriorSetRange<'a, Parent, (K, V)>,
         key: K,
     ) -> SetIterator<'a, Parent, K, V> {
         SetIterator {
@@ -157,13 +157,13 @@ impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
 
     pub(crate) fn reconstitute(
         &mut self,
-        find_vset: impl FnOnce(&Parent, K) -> VSet<K, V>
+        find_vset: impl for<'b> FnOnce(&'b Parent, K) -> VSet<'b, K, V>
     ) -> &mut btree_set::Range<'a, (K, V)> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
         let key = self.key;
 
-        let set = self.cache.get_or_compute(|xs| { find_vset(xs, key) });
+        let set: VSet<'a, K, V> = self.cache.get_or_compute_arg(|xs| { find_vset(xs, key) });
         let iterator = self.iterator.get_or_compute(|| { range_utils::make_vset_range(&set, fc, bc) });
         iterator
     }
@@ -208,7 +208,7 @@ impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
 }
 
 pub(crate) struct FlatIterator<'a, Parent, K: IdLike, V: IdLike> {
-    iterator: InteriorTreeRange<'a, Parent, K, V>,
+    iterator: InteriorBTreeMapRange<'a, Parent, K, V>,
 
     front_cursor: Option<K>,
     back_cursor: Option<K>,
@@ -216,7 +216,7 @@ pub(crate) struct FlatIterator<'a, Parent, K: IdLike, V: IdLike> {
 }
 
 impl<'a, Parent, K: IdLike, V: IdLike> FlatIterator<'a, Parent, K, V> {
-    pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, V>) -> FlatIterator<'a, Parent, K, V> {
+    pub(crate) fn new(iterator: InteriorBTreeMapRange<'a, Parent, K, V>) -> FlatIterator<'a, Parent, K, V> {
         FlatIterator {
             iterator,
             front_cursor: None,
@@ -232,7 +232,7 @@ impl<'a, Parent, K: IdLike, V: IdLike> FlatIterator<'a, Parent, K, V> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute(|xs| {
+        let iterator = self.iterator.get_or_compute_arg(|xs| {
             range_utils::make_btreemap_range(&open_parent(xs).0, fc, bc)
         });
         iterator

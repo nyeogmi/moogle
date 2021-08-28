@@ -40,7 +40,7 @@ impl<T> MoogCell<T> {
 }
 
 impl<'a, T, K: IdLike, V: IdLike> InteriorVSet<'a, T, K, V> {
-    pub(crate) fn get_or_compute(
+    pub(crate) fn get_or_compute_arg(
         &self, 
         compute: impl for<'b> FnOnce(&'b T) -> VSet<'b, K, V>
     ) -> VSet<'a, K, V> {

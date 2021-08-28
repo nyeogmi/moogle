@@ -6,7 +6,7 @@ use crate::id::IdLike;
 
 use super::MoogCell;
 
-pub struct InteriorTreeRange<'a, T, K: IdLike, V: 'a> {
+pub struct InteriorBTreeMapRange<'a, T, K: IdLike, V: 'a> {
     owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
@@ -14,9 +14,9 @@ pub struct InteriorTreeRange<'a, T, K: IdLike, V: 'a> {
     value: MaybeUninit<btree_map::Range<'a, K, V>>, 
 }
 
-impl<'a, T, K: IdLike, V: 'static> Clone for InteriorTreeRange<'a, T, K, V> {
+impl<'a, T, K: IdLike, V: 'static> Clone for InteriorBTreeMapRange<'a, T, K, V> {
     fn clone(&self) -> Self { 
-        InteriorTreeRange {
+        InteriorBTreeMapRange {
             owner: self.owner,
             state: self.state.clone(),
             value: 
@@ -30,8 +30,8 @@ impl<'a, T, K: IdLike, V: 'static> Clone for InteriorTreeRange<'a, T, K, V> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_tree_range<'a, K: IdLike, V: 'a>(&'a self) -> InteriorTreeRange<'a, T, K, V> { 
-        InteriorTreeRange { 
+    pub fn create_interior_btreemap_range<'a, K: IdLike, V: 'a>(&'a self) -> InteriorBTreeMapRange<'a, T, K, V> { 
+        InteriorBTreeMapRange { 
             owner: self, 
             state: Cell::new(0), 
             value: MaybeUninit::uninit(),
@@ -39,8 +39,8 @@ impl<T> MoogCell<T> {
     }
 }
 
-impl<'a, T, K: IdLike, V: 'a> InteriorTreeRange<'a, T, K, V> {
-    pub(crate) fn get_or_compute(
+impl<'a, T, K: IdLike, V: 'a> InteriorBTreeMapRange<'a, T, K, V> {
+    pub(crate) fn get_or_compute_arg(
         &mut self, 
         compute: impl for<'b> FnOnce(&'b T) -> btree_map::Range<'b, K, V>
     ) -> &mut btree_map::Range<'a, K, V> {

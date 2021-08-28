@@ -17,7 +17,7 @@ fn main() {
     }
 
     println!("reverse:");
-    for i in s.bwd().iter() {
+    for i in s.bwd().iter().rev() {
         println!("Found: {:?}", i);
         s.fwd().get('a').insert(6);
     }

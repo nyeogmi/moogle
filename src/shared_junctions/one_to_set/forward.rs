@@ -26,9 +26,7 @@ pub struct FwdSet<'a, A: IdLike, B: IdLike> {
 // == caching ==
 impl <'a, A: IdLike, B: IdLike> FwdSet<'a, A, B> {
     pub(in crate::shared_junctions) fn fetch(&self) -> VSet<'a, A, B> {
-        return self.cache.get_or_compute(
-            |o| o.fwd().get_short(self.key).0,
-        )
+        return self.cache.get_or_compute_arg(|o| o.fwd().get_short(self.key).0)
     }
 }
 
@@ -58,7 +56,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
     }
     fn keys(&self) -> Self::Keys {
         FwdKeysIterator::<'a, A, B> { 
-            iter: KeysIterator::new(self.me.raw.create_interior_set_range())
+            iter: KeysIterator::new(self.me.raw.create_interior_btreeset_range())
         }
     }
     fn sets(&self) -> Self::Sets { 
@@ -82,7 +80,7 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, B> for FwdSet<'a, A, B> {
         FwdSetIterator {
             iter: SetIterator::new(
                 self.parent.raw.create_interior_vset(),
-                self.parent.raw.create_interior_tupset_range(),
+                self.parent.raw.create_interior_btreeset_range(),
                 self.key,
             )
         }

@@ -2,19 +2,17 @@ use std::cell::Cell;
 use std::mem::MaybeUninit;
 use std::collections::btree_set;
 
-use crate::id::IdLike;
-
 use super::MoogCell;
 
-pub struct InteriorSetRange<'a, T, K: IdLike> {
+pub struct InteriorSetRange<'a, T, Item: Copy+'a> {
     owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
     // note: this is safe because Range is not Drop
-    value: MaybeUninit<btree_set::Range<'static, K>>,
+    value: MaybeUninit<btree_set::Range<'a, Item>>,
 }
 
-impl<'a, T, K: IdLike> Clone for InteriorSetRange<'a, T, K> {
+impl<'a, T, Item: Copy+'a> Clone for InteriorSetRange<'a, T, Item> {
     fn clone(&self) -> Self { 
         InteriorSetRange {
             owner: self.owner,
@@ -30,7 +28,7 @@ impl<'a, T, K: IdLike> Clone for InteriorSetRange<'a, T, K> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_set_range<K: IdLike>(&self) -> InteriorSetRange<'_, T, K> { 
+    pub fn create_interior_btreeset_range<'a, Item: Copy+'a>(&'a self) -> InteriorSetRange<'a, T, Item> { 
         InteriorSetRange { 
             owner: self, 
             state: Cell::new(0), 
@@ -39,24 +37,37 @@ impl<T> MoogCell<T> {
     }
 }
 
-impl<'a, T, K: IdLike> InteriorSetRange<'a, T, K> {
+impl<'a, T, Item: Copy+'a> InteriorSetRange<'a, T, Item> {
     pub(crate) fn get_or_compute(
         &mut self, 
-        compute: impl for<'b> FnOnce(&'b T) -> btree_set::Range<'b, K>
-    ) -> &mut btree_set::Range<'a, K> {
+        compute: impl FnOnce() -> btree_set::Range<'a, Item> 
+    ) -> &mut btree_set::Range<'a, Item> {
+        let og = self.owner.state.get();
+        if self.state.get() != og {
+            self.state.replace(og);
+
+            let value: btree_set::Range<'_, Item> = compute();
+            let long_value: btree_set::Range<'a, Item> = unsafe { std::mem::transmute(value) };
+            self.value = MaybeUninit::new(long_value);
+        }
+
+        unsafe { self.value.assume_init_mut() }
+    }
+
+    pub(crate) fn get_or_compute_arg(
+        &mut self, 
+        compute: impl for<'b> FnOnce(&'b T) -> btree_set::Range<'b, Item> 
+    ) -> &mut btree_set::Range<'a, Item> {
         let og = self.owner.state.get();
         if self.state.get() != og {
             self.state.replace(og);
 
             let borrow = self.owner.borrow();
-            let value: btree_set::Range<'_, K> = compute(&borrow);
-            let static_value: btree_set::Range<'static, K> = unsafe { std::mem::transmute(value) };
-            self.value = MaybeUninit::new(static_value);
+            let value: btree_set::Range<'_, Item> = compute(&borrow);
+            let long_value: btree_set::Range<'a, Item> = unsafe { std::mem::transmute(value) };
+            self.value = MaybeUninit::new(long_value);
         }
 
-        let old_ptr: &mut btree_set::Range<'static, K> = unsafe { self.value.assume_init_mut() };
-        let new_ptr: &mut btree_set::Range<'a, K> = unsafe { std::mem::transmute(old_ptr) };
-
-        new_ptr
+        unsafe { self.value.assume_init_mut() }
     }
 }

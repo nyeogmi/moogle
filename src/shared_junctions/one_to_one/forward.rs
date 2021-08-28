@@ -23,7 +23,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         FwdFlatIterator::<'a, A, B> {
-            iter: FlatIterator::new(self.me.raw.create_interior_tree_range()),
+            iter: FlatIterator::new(self.me.raw.create_interior_btreemap_range()),
         }
     }
     fn keys(&self) -> Self::Keys { self.iter().map(|(k, _)| k) }
