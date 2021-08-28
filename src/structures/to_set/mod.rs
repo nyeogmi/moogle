@@ -1,3 +1,4 @@
+// TODO: Use unwrap_unchecked for min_v/max_v, or possibly MaybeUninit
 use crate::id::IdLike;
 use crate::methods::{EvictSet, ViewSet};
 
@@ -6,8 +7,7 @@ use std::collections::btree_set;
 use std::ops::RangeBounds;
 
 pub(crate) struct ToSet<K, V> {
-    min_v: Option<V>, 
-    max_v: Option<V>,
+    min_max_v: Option<(V, V)>, 
     keys: BTreeSet<K>,
     elements: BTreeSet<(K, V)>,
 }
@@ -32,12 +32,14 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
     pub fn new() -> Self { ToSet { 
         keys: BTreeSet::new(),
         elements: BTreeSet::new(), 
-        min_v: None, max_v: None,
+        min_max_v: None,
     } }
 
     fn update_min_max(&mut self, value: V) {
-        self.min_v = Some(match self.min_v { None => value, Some(x) => x.min(value), });
-        self.max_v = Some(match self.max_v { None => value, Some(x) => x.max(value), });
+        self.min_max_v = Some(match self.min_max_v {
+            None => (value, value),
+            Some((mn, mx)) => (mn.min(value), mx.max(value)),
+        })
     }
 
     pub fn insert(&mut self, key: K, value: V, _on_evict: impl FnOnce(K, V)) -> Option<V> { 
@@ -61,7 +63,8 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
         } else { 
 
             // TODO: Use unwrap_unchecked
-            self.elements.range((key, self.min_v.unwrap())..=(key, self.max_v.unwrap()))
+            let (min_v, max_v) = self.min_max_v.unwrap();
+            self.elements.range((key, min_v)..=(key, max_v))
         }
     }
 
@@ -74,14 +77,16 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
             // doesn't matter
             self.elements.range(..)
         } else {
+            // TODO: Use unwrap_unchcked
+            let (min_v, max_v) = self.min_max_v.unwrap();
             let v0_real = match v0 {
                 // more restrictive
                 Some(x) => x,
-                None => self.min_v.unwrap(),
+                None => min_v,
             };
             let v1_real = match v1 {
                 Some(x) => x,
-                None => self.max_v.unwrap(),
+                None => max_v,
             };
             self.elements.range((key, v0_real)..=(key, v1_real))
         }
