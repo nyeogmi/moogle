@@ -1,6 +1,8 @@
 
 ## TODOs
 
+- Entry API for poms
+- Actually unit test poms
 - More thorough unit testing
 - Cute moogle logo.
 - IntoIterator for &T for all builtin `.iter()`-providing Ts.
