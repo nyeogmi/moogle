@@ -6,13 +6,12 @@ use crate::raw_poms::RawPom;
 
 use crate::iterators::KeyValuesIterator;
 
-// TODO: Don't constrain T to static. Right now for some reason Id<T> creates a bound for that
-
 pub struct Pom<T: 'static> { 
     raw: MoogCell<RawPom<T>>,
 }
 
 // TODO: Provide an entry-flavored API to get around the problems of the current API
+// Have each Entry implement borrow-related traits. Represent each as an interior ref to the MoogCell and also include the key
 // TODO: Either that or just require Copy
 impl<T: 'static> Pom<T> {
     pub fn new() -> Self {
