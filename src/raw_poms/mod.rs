@@ -22,7 +22,8 @@ impl<T> RawPom<T> {
         id
     }
     pub fn remove(&mut self, k: Id<T>) -> Option<T> { self.members.remove(&k) }
-    pub fn transact(&mut self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { f(self.members.get_mut(&k)) }
+    pub fn transact(&self, k: Id<T>, f: impl FnOnce(Option<&T>)) { f(self.members.get(&k)) }
+    pub fn transact_mut(&mut self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { f(self.members.get_mut(&k)) }
 
     pub fn get(&self, k: Id<T>) -> Option<&T> { self.members.get(&k) }
     pub fn get_mut(&mut self, k: Id<T>) -> Option<&mut T> { self.members.get_mut(&k) }

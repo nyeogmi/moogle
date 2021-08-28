@@ -16,6 +16,8 @@ impl<A: IdLike, B: IdLike> SetToOne<A, B> {
         SetToOne { raw: MoogCell::new(RawSetToOne::new()) }
     }
 
+    pub fn raw(&mut self) -> &mut RawSetToOne<A, B> { self.raw.get_mut() }
+
     pub fn fwd(&self) -> Fwd<A, B> { Fwd { me: self } }
     pub fn bwd(&self) -> Bwd<A, B> { Bwd { me: self } }
 }

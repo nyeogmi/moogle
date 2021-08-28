@@ -16,6 +16,8 @@ impl<A: IdLike, B: IdLike> SetToSet<A, B> {
         SetToSet { raw: MoogCell::new(RawSetToSet::new()) }
     }
 
+    pub fn raw(&mut self) -> &mut RawSetToSet<A, B> { self.raw.get_mut() }
+
     pub fn fwd(&self) -> Fwd<A, B> { Fwd { me: self } }
     pub fn bwd(&self) -> Bwd<A, B> { Bwd { me: self } }
 }

@@ -1,17 +1,36 @@
 
 ## TODOs
 
+Small:
+
+- Relax the lifetime constraints involving raw junctions. (Should be possible now that the vset implementation is changed.)
+- Get rid of interior VSets. VSets no longer contain anything special so there's no need for them to exist.
 - Entry API for poms
 - Actually unit test poms
-- More thorough unit testing
-- Cute moogle logo.
+- Better `len()` implementation for ToSet
+
+Medium:
+
+- Support miri
 - IntoIterator for &T for all builtin `.iter()`-providing Ts.
 - Add `arr[x]` syntax for all builtin junctions.
-- Support miri
+- The other traits et cetera from BTreeMap and BTreeSet
+
+Big:
+
+- More thorough unit testing
+- Document everything
+
+Speculative:
+
 - Allow multiple junctions to share a database and allow Prolog-like querying across that database.
-- Add ToVecs which behave like ToSets except:
+- Add ToVecs, which behave like ToSets except:
   - tracks and evicts based on insertion order
   - duplicate items are allowed
   - can be capped
   - Consider: ToVec-based junctions are no longer unique in what pairs they contain?
   - Consider: ToOrderedSet instead, or ToIxd? (indexed, but keeping the pairwise uniqueness guarantee)
+
+Misc:
+
+- Cute moogle logo.
