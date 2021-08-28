@@ -4,10 +4,12 @@
 
 `moogle` provides data structures for the four two-way relationship types used in database programming: one-to-one, one-to-many, many-to-one, and many-to-many. For each type, it provides two data structures:
 
-- a "raw" data structure (ex. RawOneToOne): a very thin implementation of that relationship over `BTreeMap`
-- a "shared" data structure (ex. OneToOne): a shareable implementation of that relationship over `RefCell<BTreeMap>`
+- a "raw" data structure (ex. RawOneToOne): a very thin implementation of that relationship over `BTreeMap` or `BTreeSet`
+- a "shared" data structure (ex. OneToOne): a shareable implementation of that relationship over `RefCell<BTreeMap>` or `RefCell<BTreeSet>`
 
-I haven't profiled the Moogle types yet, but based on their implementation (a very thin layer over `BTreeMap`) I'd expect the raw types to be within an order of magnitude of `BTreeMap` in all cases. In cases with a lot of reads and few writes, I would expect the shared versions to approach `BTreeMap` performance but not reach it.
+I haven't profiled the Moogle types yet, but based on their implementation (a very thin layer over `BTreeMap` or `BTreeSet`) I'd expect the raw types to be within an order of magnitude of the underlying implementation in all cases. Set operations usually require two insertions, and inserts need to be done in both directions, meaning you can expect my code to be 1/4 as fast as a simple b-tree at most.
+
+In cases with a lot of reads and few writes, I would expect the shared versions to approach `Raw` performance but not reach it.
 
 ## Motivation
 
@@ -242,7 +244,7 @@ The four specializations are below:
 - `RawSetToOne<A, B>`: maps `BTreeSet<A>` to `Optional<B>`
 - `RawSetToSet<A, B>`: maps `BTreeSet<A>` to `BTreeSet<B>`
 
-The underlying mapping is done using `BTreeMap`, which preserves `Ord` of elements and is deterministic. Elements are required to be `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
+The underlying mapping is done using `BTreeSet<(A, B)>` (if multiple B are possible) or `BTreeMap<A, B>`. (otherwise) A BTree preserves `Ord` of elements and all operations are deterministic. Elements are expected to be bounded, `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
 
 Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `RawOneToSet<usize, char>` corresponds to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
 
