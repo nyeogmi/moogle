@@ -86,7 +86,7 @@ println!("Jochen's items: {:?}", inventory.fwd().get(jochen));
 
 If you're a relational database guy, you can think of a Moogle bimap as a junction table with two columns where either column can be `UNIQUE`, and constraint violations are dealt with by deleting the older row.
 
-If you're a Rust or Python guy, you can think of it as two dictionaries that are kept in sync. For instance, the `RawSetToOne` used above is exactly equivalent to a `BTreeMap<NPC, BTreeSet<Item>>` paired with a `BTreeMap<Item, NPC>`.
+If you're a Rust or Python guy, you can think of it as two BTrees that are kept in sync. For instance, the `OneToSet` used above is formally equivalent to a `BTreeMap<NPC, BTreeSet<Item>>` paired with a `BTreeMap<Item, NPC>`. 
 
 (What does "kept in sync" mean? Formally, it means that for every `(NPC, Item)` stored in the first one, there's a corresponding `(Item, NPC)` in the second, and vice versa.)
 
@@ -246,7 +246,7 @@ The four specializations are below:
 
 The underlying mapping is done using `BTreeSet<(A, B)>` (if multiple B are possible) or `BTreeMap<A, B>`. (otherwise) A BTree preserves `Ord` of elements and all operations are deterministic. Elements are expected to be bounded, `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
 
-Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `RawOneToSet<usize, char>` corresponds to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
+Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `RawOneToSet<usize, char>` behaves identically to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
 
 (What does "kept in sync" mean? Formally: `insert()`ing on one automatically `insert()`s on the other such that each pair `(a, b)` in one has a corresponding pair `(b, a)` in the other.)
 
