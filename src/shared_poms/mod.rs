@@ -13,6 +13,7 @@ pub struct Pom<T: 'static> {
 }
 
 // TODO: Provide an entry-flavored API to get around the problems of the current API
+// TODO: Either that or just require Copy
 impl<T: 'static> Pom<T> {
     pub fn new() -> Self {
         Pom { raw: MoogCell::new(RawPom::new()) }
