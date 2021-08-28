@@ -44,7 +44,7 @@ impl<'a, T, Item: Copy+'a> InteriorSetRange<'a, T, Item> {
     ) -> &mut btree_set::Range<'a, Item> {
         // panic if someone else borrowed our owner
         // (which would imply there is a &mut to it somewhere)
-        let borrow = self.owner.borrow_mut();
+        let borrow = self.owner.borrow();
 
         let og = self.owner.state.get();
         if self.state.get() != og {
