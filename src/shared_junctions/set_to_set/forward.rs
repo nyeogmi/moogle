@@ -58,7 +58,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
     }
     fn keys(&self) -> Self::Keys {
         FwdKeysIterator::<'a, A, B> { 
-            iter: KeysIterator::new(self.me.raw.create_interior_tree_range())
+            iter: KeysIterator::new(self.me.raw.create_interior_set_range())
         }
     }
     fn sets(&self) -> Self::Sets { 
@@ -82,7 +82,7 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, B> for FwdSet<'a, A, B> {
         FwdSetIterator {
             iter: SetIterator::new(
                 self.parent.raw.create_interior_vset(),
-                self.parent.raw.create_interior_set_range(),
+                self.parent.raw.create_interior_tupset_range(),
                 self.key,
             )
         }
@@ -94,7 +94,7 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, B> for FwdSet<'a, A, B> {
 
 // == iterators ==
 struct FwdKeysIterator<'a, A: IdLike, B: IdLike> {
-    iter: KeysIterator<'a, RawSetToSet<A, B>, A, B>,
+    iter: KeysIterator<'a, RawSetToSet<A, B>, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdKeysIterator<'a, A, B> {

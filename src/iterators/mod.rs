@@ -1,9 +1,9 @@
 use crate::id::IdLike;
 use crate::structures::{ToOne, ToSet, VSet};
 
-use std::collections::{BTreeSet, BTreeMap, btree_set, btree_map};
+use std::collections::{BTreeMap, btree_set, btree_map};
 
-use crate::moogcell::{InteriorSetRange, InteriorTreeRange, InteriorVSet};
+use crate::moogcell::{InteriorTupSetRange, InteriorTreeRange, InteriorSetRange, InteriorVSet};
 
 mod range_utils;
 
@@ -69,16 +69,16 @@ impl<'a, Parent, K: IdLike, V: 'a> KeyValuesIterator<'a, Parent, K, V> {
     }
 }
 
-pub(crate) struct KeysIterator<'a, Parent, K: IdLike, V: IdLike> {
-    iterator: InteriorTreeRange<'a, Parent, K, BTreeSet<V>>,
+pub(crate) struct KeysIterator<'a, Parent, K: IdLike> {
+    iterator: InteriorSetRange<'a, Parent, K>,
 
     front_cursor: Option<K>,
     back_cursor: Option<K>,
     done: bool,
 }
 
-impl<'a, Parent, K: IdLike, V: IdLike> KeysIterator<'a, Parent, K, V> {
-    pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, BTreeSet<V>>) -> KeysIterator<'a, Parent, K, V> {
+impl<'a, Parent, K: IdLike> KeysIterator<'a, Parent, K> {
+    pub(crate) fn new(iterator: InteriorSetRange<'a, Parent, K>) -> KeysIterator<'a, Parent, K> {
         KeysIterator {
             iterator,
 
@@ -88,10 +88,10 @@ impl<'a, Parent, K: IdLike, V: IdLike> KeysIterator<'a, Parent, K, V> {
         }
     }
 
-    fn reconstitute(
+    fn reconstitute<V: IdLike>(
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
-    ) -> &mut btree_map::Range<'a, K, BTreeSet<V>> {
+    ) -> &mut btree_set::Range<'a, K> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
@@ -101,27 +101,27 @@ impl<'a, Parent, K: IdLike, V: IdLike> KeysIterator<'a, Parent, K, V> {
         iterator
     }
 
-    pub(crate) fn next(
+    pub(crate) fn next<V: IdLike>(
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
     ) -> Option<K> {
         if self.done { return None; }
 
         let iter = self.reconstitute(open_parent);
-        let k = iter.next().map(|(k, _)| *k); 
+        let k = iter.next().map(|k| *k); 
         self.front_cursor = k; 
         if k == None { self.done = true; }
         k
     }
 
-    pub(crate) fn next_back(
+    pub(crate) fn next_back<V: IdLike>(
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
     ) -> Option<K> { 
         if self.done { return None; }
 
         let iter = self.reconstitute(open_parent);
-        let k = iter.next_back().map(|(k, _)| *k); 
+        let k = iter.next_back().map(|k| *k); 
         self.back_cursor = k; 
         if k == None { self.done = true; }
         k
@@ -130,7 +130,7 @@ impl<'a, Parent, K: IdLike, V: IdLike> KeysIterator<'a, Parent, K, V> {
 
 pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
     cache: InteriorVSet<'a, Parent, K, V>,
-    iterator: InteriorSetRange<'a, Parent, V>,
+    iterator: InteriorTupSetRange<'a, Parent, K, V>,
 
     key: K,
     front_cursor: Option<V>,
@@ -141,7 +141,7 @@ pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
 impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
     pub(crate) fn new(
         cache: InteriorVSet<'a, Parent, K, V>,
-        iterator: InteriorSetRange<'a, Parent, V>,
+        iterator: InteriorTupSetRange<'a, Parent, K, V>,
         key: K,
     ) -> SetIterator<'a, Parent, K, V> {
         SetIterator {
@@ -158,22 +158,14 @@ impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
     pub(crate) fn reconstitute(
         &mut self,
         find_vset: impl FnOnce(&Parent, K) -> VSet<K, V>
-    ) -> Option<&mut btree_set::Range<'a, V>> {
+    ) -> &mut btree_set::Range<'a, (K, V)> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
         let key = self.key;
 
-        let set = self.cache.get_or_compute(|xs| {
-            find_vset(xs, key)
-        });
-        let bt = match set.0 {
-            None => return None,
-            Some(b) => b,
-        };
-        let iterator = self.iterator.get_or_compute(|| {
-            range_utils::make_btreeset_range(bt, fc, bc)
-        });
-        Some(iterator)
+        let set = self.cache.get_or_compute(|xs| { find_vset(xs, key) });
+        let iterator = self.iterator.get_or_compute(|| { range_utils::make_vset_range(&set, fc, bc) });
+        iterator
     }
 
     pub(crate) fn next(
@@ -183,10 +175,16 @@ impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
         if self.done { return None; }
 
         let iter = self.reconstitute(find_vset);
-        let v = iter?.next().map(|v| *v); 
-        self.front_cursor = v; 
-        if v == None { self.done = true; }
-        v
+        match iter.next().map(|v| *v) {
+            Some((_, v)) => {
+                self.front_cursor = Some(v);
+                Some(v)
+            }
+            None => {
+                self.done = true;
+                None
+            }
+        }
     }
 
     pub(crate) fn next_back(
@@ -196,10 +194,16 @@ impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
         if self.done { return None; }
 
         let iter = self.reconstitute(find_vset);
-        let v = iter?.next_back().map(|v| *v); 
-        self.back_cursor = v; 
-        if v == None { self.done = true; }
-        v
+        match iter.next_back().map(|v| *v) {
+            Some((_, v)) => {
+                self.front_cursor = Some(v);
+                Some(v)
+            }
+            None => {
+                self.done = true;
+                None
+            }
+        }
     }
 }
 

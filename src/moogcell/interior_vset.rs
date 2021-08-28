@@ -50,12 +50,12 @@ impl<'a, T, K: IdLike, V: IdLike> InteriorVSet<'a, T, K, V> {
 
             let borrow = self.owner.borrow();
             let value: VSet<'_, K, V> = compute(&borrow);
-            let static_value: VSet<'static, K, V> = unsafe { std::mem::transmute(value) };
+            let static_value: VSet<'static, K, V> = unsafe { value.unsafe_transmute_lifetime() };
             self.value.replace(MaybeUninit::new(static_value));
         }
 
         let old_ptr: VSet<'static, K, V> = unsafe { self.value.get().assume_init() };
-        let new_ptr: VSet<'a, K, V> = unsafe { std::mem::transmute(old_ptr) };
+        let new_ptr: VSet<'a, K, V> = unsafe { old_ptr.unsafe_transmute_lifetime() };
 
         new_ptr.clone()
     }
