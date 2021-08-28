@@ -87,10 +87,6 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
-impl<'a, A: IdLike, B: IdLike> VFwd<'a, A, B> {
-    pub(crate) fn get_short(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
-}
-
 impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
@@ -189,10 +185,6 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, B, A> for MBwd<'a, A, B> {
     fn keys(&'a self) -> Self::Keys { self.0.bwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.bwd.keys().map(move |k| (k, self.get(k))) }
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
-}
-
-impl<'a, A: IdLike, B: IdLike> VBwd<'a, A, B> {
-    pub(crate) fn get_short(&self, b: B) -> VBwdSet<'a, A, B> { VBwdSet(self.0.bwd.get(b)) }
 }
 
 impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, B, A> for VBwd<'a, A, B> {

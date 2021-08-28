@@ -10,24 +10,13 @@ use crate::raw_junctions::set_to_set::RawSetToSet;
 
 use std::collections::BTreeSet;
 
-use crate::moogcell::InteriorVSet;
-use crate::iterators::{ToSetKeysIterator, ToSetKeyValueIterator, VSetIterator};
-
-use crate::structures::VSet;
+use crate::iterators::{ToSetKeysIterator, ToSetKeyValueIterator};
 
 // == type ==
 pub struct Bwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a SetToSet<A, B> }
 pub struct BwdSet<'a, A: IdLike, B: IdLike> { 
     pub(in crate::shared_junctions) parent: &'a SetToSet<A, B>, 
-    cache: InteriorVSet<'a, RawSetToSet<A, B>, B, A>,
     pub(in crate::shared_junctions) key: B 
-}
-
-// == caching ==
-impl <'a, A: IdLike, B: IdLike> BwdSet<'a, A, B> {
-    pub(in crate::shared_junctions) fn fetch(&self) -> VSet<'a, B, A> {
-        return self.cache.get_or_compute_arg(|o| o.bwd().get_short(self.key).0)
-    }
 }
 
 // == main impl ==
@@ -42,7 +31,6 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 
     fn get(&self, b: B) -> Self::Multi { BwdSet { 
         parent: self.me, 
-        cache: self.me.raw.create_interior_vset::<B, A>(), 
         key: b 
     } }
     fn contains_key(&self, b: B) -> bool { self.me.raw.borrow().bwd().contains_key(b) }
@@ -50,11 +38,12 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
     fn len(&self) -> usize { self.me.raw.borrow().bwd().len() }  
     fn keys_len(&self) -> usize { self.me.raw.borrow().bwd().keys_len() }
 
-    fn contains(&'a self, b: B, a: A) -> bool { self.me.raw.borrow().bwd().get(b).contains(a) }
-
     fn iter(&self) -> Self::Iter {
         BwdIterator::<'a, A, B> {
-            iter: ToSetKeyValueIterator::new(self.me.raw.create_interior_btreeset_range())
+            iter: ToSetKeyValueIterator::new(
+                self.me.raw.create_interior_btreeset_range(),
+                None, None
+            )
         }
     }
     fn keys(&self) -> Self::Keys {
@@ -76,15 +65,23 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 impl <'a, A: IdLike, B: IdLike> SharedSet<'a, A> for BwdSet<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=A>;
 
-    fn contains(&self, a: A) -> bool { self.fetch().contains(a) }
-    fn len(&self) -> usize { self.fetch().len() }
+    fn contains(&self, a: A) -> bool { 
+        let parent = self.parent.raw.borrow();
+        let fetch = parent.bwd.get(self.key);
+        fetch.contains(a) 
+    }
+    fn len(&self) -> usize { 
+        let parent = self.parent.raw.borrow();
+        let fetch = parent.bwd.get(self.key);
+        fetch.len() 
+    }
 
     fn iter(&self) -> Self::Iter {
         BwdSetIterator {
-            iter: VSetIterator::new(
-                self.parent.raw.create_interior_vset(),
+            iter: ToSetKeyValueIterator::new(
                 self.parent.raw.create_interior_btreeset_range(),
-                self.key,
+                Some((self.key, A::id_min_value())), 
+                Some((self.key, A::id_max_value())),
             )
         }
     }
@@ -131,19 +128,19 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdKeysIterator<'a, A, B
 }
 
 struct BwdSetIterator<'a, A: IdLike, B: IdLike> {
-    iter: VSetIterator<'a, RawSetToSet<A, B>, B, A>,
+    iter: ToSetKeyValueIterator<'a, RawSetToSet<A, B>, B, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for BwdSetIterator<'a, A, B> {
     type Item = A;
 
     fn next(&mut self) -> Option<A> {
-        self.iter.next(|p, k| p.bwd().get_short(k).0)
+        self.iter.next(|p| &p.bwd).map(|(_, v)| v)
     }
 }
 
 impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdSetIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
-        self.iter.next_back(|p, k| p.bwd().get_short(k).0)
+        self.iter.next_back(|p| &p.bwd).map(|(_, v)| v)
     }
 }

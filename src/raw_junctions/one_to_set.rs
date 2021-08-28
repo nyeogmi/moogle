@@ -87,10 +87,6 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
-impl<'a, A: IdLike, B: IdLike> VFwd<'a, A, B> {
-    pub(crate) fn get_short(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
-}
-
 impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;

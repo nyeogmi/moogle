@@ -5,7 +5,7 @@ use std::collections::btree_set;
 use super::MoogCell;
 
 pub struct InteriorSetRange<'a, T, Item: Copy+'a> {
-    owner: &'a MoogCell<T>,
+    pub(crate) owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
     // note: this is safe because Range is not Drop
@@ -38,31 +38,18 @@ impl<T> MoogCell<T> {
 }
 
 impl<'a, T, Item: Copy+'a> InteriorSetRange<'a, T, Item> {
-    pub(crate) fn get_or_compute(
-        &mut self, 
-        compute: impl FnOnce() -> btree_set::Range<'a, Item> 
-    ) -> &mut btree_set::Range<'a, Item> {
-        let og = self.owner.state.get();
-        if self.state.get() != og {
-            self.state.replace(og);
-
-            let value: btree_set::Range<'_, Item> = compute();
-            let long_value: btree_set::Range<'a, Item> = unsafe { std::mem::transmute(value) };
-            self.value = MaybeUninit::new(long_value);
-        }
-
-        unsafe { self.value.assume_init_mut() }
-    }
-
     pub(crate) fn get_or_compute_arg(
         &mut self, 
         compute: impl for<'b> FnOnce(&'b T) -> btree_set::Range<'b, Item> 
     ) -> &mut btree_set::Range<'a, Item> {
+        // panic if someone else borrowed our owner
+        // (which would imply there is a &mut to it somewhere)
+        let borrow = self.owner.borrow_mut();
+
         let og = self.owner.state.get();
         if self.state.get() != og {
             self.state.replace(og);
 
-            let borrow = self.owner.borrow();
             let value: btree_set::Range<'_, Item> = compute(&borrow);
             let long_value: btree_set::Range<'a, Item> = unsafe { std::mem::transmute(value) };
             self.value = MaybeUninit::new(long_value);

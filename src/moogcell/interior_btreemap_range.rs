@@ -44,6 +44,11 @@ impl<'a, T, K: IdLike, V: 'a> InteriorBTreeMapRange<'a, T, K, V> {
         &mut self, 
         compute: impl for<'b> FnOnce(&'b T) -> btree_map::Range<'b, K, V>
     ) -> &mut btree_map::Range<'a, K, V> {
+        // panic if someone else borrowed our owner
+        // (which would imply there is a &mut to it somewhere)
+        { self.owner.borrow_mut(); }
+
+        // ok let's go!
         let og = self.owner.state.get();
         if self.state.get() != og {
             self.state.replace(og);

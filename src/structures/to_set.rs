@@ -61,24 +61,6 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
         self.keys.range(k)
     }
 
-    fn key_value_subrange(&self, key: K, v0: Option<V>, v1: Option<V>) -> btree_set::Range<'_, (K, V)> {
-        if self.elements.is_empty() {
-            // doesn't matter
-            self.elements.range(..)
-        } else {
-            let v0_real = match v0 {
-                Some(x) => x,
-                None => V::id_min_value(),
-            };
-            let v1_real = match v1 {
-                Some(x) => x,
-                None => V::id_max_value(),
-            };
-            self.elements.range((key, v0_real)..=(key, v1_real))
-        }
-
-    }
-
     pub fn expunge(&mut self, key: K, mut on_evict: impl FnMut(K, V)) -> BTreeSet<V> {
         let mut values = BTreeSet::new();
         for (_, v) in self.key_range(key) {
@@ -113,12 +95,6 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
 pub(crate) struct VSet<'a, K: IdLike, V: IdLike> {
     key: K,
     map: &'a ToSet<K, V>,
-}
-
-impl<'a, K: IdLike, V: IdLike> VSet<'a, K, V> {
-    pub(crate) unsafe fn unsafe_transmute_lifetime<'b>(&self) -> VSet<'b, K, V> {
-        VSet { key: self.key, map: std::mem::transmute(self.map) }
-    }
 }
 
 pub(crate) struct MSet<'a, K: IdLike, V: IdLike> {
@@ -178,11 +154,5 @@ impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for MSet<'a, K, V> {
 impl<'a, K: IdLike, V: IdLike+std::fmt::Debug> std::fmt::Debug for VSet<'a, K, V> {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> { 
         fmt.debug_set().entries(self.iter()).finish()
-    }
-}
-
-impl<'a, K: IdLike, V: IdLike> VSet<'a, K, V> {
-    pub(crate) fn range(&self, v0: Option<V>, v1: Option<V>) -> btree_set::Range<'a, (K, V)> {
-        self.map.key_value_subrange(self.key, v0, v1)
     }
 }

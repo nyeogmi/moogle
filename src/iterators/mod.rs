@@ -1,9 +1,9 @@
 use crate::id::IdLike;
-use crate::structures::{ToOne, ToSet, VSet};
+use crate::structures::{ToOne, ToSet};
 
 use std::collections::{BTreeMap, btree_set, btree_map};
 
-use crate::moogcell::{InteriorBTreeMapRange, InteriorSetRange, InteriorVSet};
+use crate::moogcell::{InteriorBTreeMapRange, InteriorSetRange};
 
 mod range_utils;
 
@@ -131,16 +131,25 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
 pub(crate) struct ToSetKeyValueIterator<'a, Parent, K: IdLike, V: IdLike> {
     iterator: InteriorSetRange<'a, Parent, (K, V)>,
 
+    // unlike cursors, these aren't skipped
+    front_element: Option<(K, V)>,
+    back_element: Option<(K, V)>,
+
     front_cursor: Option<(K, V)>,
     back_cursor: Option<(K, V)>,
     done: bool,
 }
 
 impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
-    pub(crate) fn new(iterator: InteriorSetRange<'a, Parent, (K, V)>) -> ToSetKeyValueIterator<'a, Parent, K, V> {
+    pub(crate) fn new(
+        iterator: InteriorSetRange<'a, Parent, (K, V)>, 
+        front_element: Option<(K, V)>,
+        back_element: Option<(K, V)>,
+    ) -> ToSetKeyValueIterator<'a, Parent, K, V> {
         ToSetKeyValueIterator {
             iterator,
 
+            front_element, back_element,
             front_cursor: None,
             back_cursor: None,
             done: false,
@@ -153,9 +162,13 @@ impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
     ) -> &mut btree_set::Range<'a, (K, V)> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
+        let fe = self.front_element;
+        let be = self.back_element;
 
         let iterator = self.iterator.get_or_compute_arg(|xs| {
-            range_utils::make_toset_key_value_range(open_parent(xs), fc, bc)
+            range_utils::make_toset_key_value_range(
+                open_parent(xs), fc, bc, fe, be
+            )
         });
         iterator
     }
@@ -184,86 +197,6 @@ impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
         self.back_cursor = k; 
         if k == None { self.done = true; }
         k
-    }
-}
-
-// TODO: Factor this out, use ToSetKeyValueIterator instead
-pub(crate) struct VSetIterator<'a, Parent, K: IdLike, V: IdLike> {
-    cache: InteriorVSet<'a, Parent, K, V>,
-    iterator: InteriorSetRange<'a, Parent, (K, V)>,
-
-    key: K,
-    front_cursor: Option<V>,
-    back_cursor: Option<V>,
-    done: bool,
-}
-
-impl<'a, Parent, K: IdLike, V: IdLike> VSetIterator<'a, Parent, K, V> {
-    pub(crate) fn new(
-        cache: InteriorVSet<'a, Parent, K, V>,
-        iterator: InteriorSetRange<'a, Parent, (K, V)>,
-        key: K,
-    ) -> VSetIterator<'a, Parent, K, V> {
-        VSetIterator {
-            cache,
-            iterator,
-
-            key,
-            front_cursor: None,
-            back_cursor: None,
-            done: false,
-        }
-    }
-
-    pub(crate) fn reconstitute(
-        &mut self,
-        find_vset: impl for<'b> FnOnce(&'b Parent, K) -> VSet<'b, K, V>
-    ) -> &mut btree_set::Range<'a, (K, V)> {
-        let fc = self.front_cursor;
-        let bc = self.back_cursor;
-        let key = self.key;
-
-        let set: VSet<'a, K, V> = self.cache.get_or_compute_arg(|xs| { find_vset(xs, key) });
-        let iterator = self.iterator.get_or_compute(|| { range_utils::make_vset_range(&set, fc, bc) });
-        iterator
-    }
-
-    pub(crate) fn next(
-        &mut self, 
-        find_vset: impl FnOnce(&Parent, K) -> VSet<K, V>
-    ) -> Option<V> {
-        if self.done { return None; }
-
-        let iter = self.reconstitute(find_vset);
-        match iter.next().map(|v| *v) {
-            Some((_, v)) => {
-                self.front_cursor = Some(v);
-                Some(v)
-            }
-            None => {
-                self.done = true;
-                None
-            }
-        }
-    }
-
-    pub(crate) fn next_back(
-        &mut self, 
-        find_vset: impl FnOnce(&Parent, K) -> VSet<K, V>
-    ) -> Option<V> { 
-        if self.done { return None; }
-
-        let iter = self.reconstitute(find_vset);
-        match iter.next_back().map(|v| *v) {
-            Some((_, v)) => {
-                self.front_cursor = Some(v);
-                Some(v)
-            }
-            None => {
-                self.done = true;
-                None
-            }
-        }
     }
 }
 
