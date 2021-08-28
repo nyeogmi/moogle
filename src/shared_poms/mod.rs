@@ -12,6 +12,7 @@ pub struct Pom<T: 'static> {
     raw: MoogCell<RawPom<T>>,
 }
 
+// TODO: Provide an entry-flavored API to get around the problems of the current API
 impl<T: 'static> Pom<T> {
     pub fn new() -> Self {
         Pom { raw: MoogCell::new(RawPom::new()) }
@@ -22,7 +23,6 @@ impl<T: 'static> Pom<T> {
     pub fn transact(&self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { self.raw.borrow_mut().transact(k, f) }
 
     // get() is &mut because people can wreak a lot of havoc with just a & and this struct
-    // TODO: Provide an entry-flavored API to get around that
     pub fn get(&mut self, k: Id<T>) -> Option<&T> { self.raw.get_mut().get(k) }
     pub fn get_mut(&mut self, k: Id<T>) -> Option<&mut T> { self.raw.get_mut().get_mut(k) }
     pub fn contains_key(&self, k: Id<T>) -> bool { self.raw.borrow().contains_key(k) }
