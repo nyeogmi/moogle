@@ -13,4 +13,3 @@
   - can be capped
   - Consider: ToVec-based junctions are no longer unique in what pairs they contain?
   - Consider: ToOrderedSet instead, or ToIxd? (indexed, but keeping the pairwise uniqueness guarantee)
-- Use `BTreeSet<(X, Y)>` instead of `BTreeMap<X, BTreeSet<Y>>`

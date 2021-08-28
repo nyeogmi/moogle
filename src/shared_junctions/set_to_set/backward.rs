@@ -11,7 +11,7 @@ use crate::raw_junctions::set_to_set::RawSetToSet;
 use std::collections::BTreeSet;
 
 use crate::moogcell::InteriorVSet;
-use crate::iterators::{KeysIterator, SetIterator};
+use crate::iterators::{ToSetKeysIterator, ToSetKeyValueIterator, VSetIterator};
 
 use crate::structures::VSet;
 
@@ -53,12 +53,13 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
     fn contains(&'a self, b: B, a: A) -> bool { self.me.raw.borrow().bwd().get(b).contains(a) }
 
     fn iter(&self) -> Self::Iter {
-        let me = self.me;
-        self.keys().flat_map(move |k| me.bwd().get(k).iter().map(move |v| (k, v)))
+        BwdIterator::<'a, A, B> {
+            iter: ToSetKeyValueIterator::new(self.me.raw.create_interior_btreeset_range())
+        }
     }
     fn keys(&self) -> Self::Keys {
         BwdKeysIterator::<'a, A, B> { 
-            iter: KeysIterator::new(self.me.raw.create_interior_btreeset_range())
+            iter: ToSetKeysIterator::new(self.me.raw.create_interior_btreeset_range())
         }
     }
     fn sets(&self) -> Self::Sets { 
@@ -80,7 +81,7 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, A> for BwdSet<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         BwdSetIterator {
-            iter: SetIterator::new(
+            iter: VSetIterator::new(
                 self.parent.raw.create_interior_vset(),
                 self.parent.raw.create_interior_btreeset_range(),
                 self.key,
@@ -93,8 +94,26 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, A> for BwdSet<'a, A, B> {
 }
 
 // == iterators ==
+struct BwdIterator<'a, A: IdLike, B: IdLike> {
+    iter: ToSetKeyValueIterator<'a, RawSetToSet<A, B>, B, A>,
+}
+
+impl<'a, A: IdLike, B: IdLike> Iterator for BwdIterator<'a, A, B> {
+    type Item = (B, A);
+
+    fn next(&mut self) -> Option<(B, A)> {
+        self.iter.next(|p| &p.bwd)
+    }
+}
+
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdIterator<'a, A, B> {
+    fn next_back(&mut self) -> Option<Self::Item> { 
+        self.iter.next_back(|p| &p.bwd)
+    }
+}
+
 struct BwdKeysIterator<'a, A: IdLike, B: IdLike> {
-    iter: KeysIterator<'a, RawSetToSet<A, B>, B>,
+    iter: ToSetKeysIterator<'a, RawSetToSet<A, B>, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for BwdKeysIterator<'a, A, B> {
@@ -112,7 +131,7 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdKeysIterator<'a, A, B
 }
 
 struct BwdSetIterator<'a, A: IdLike, B: IdLike> {
-    iter: SetIterator<'a, RawSetToSet<A, B>, B, A>,
+    iter: VSetIterator<'a, RawSetToSet<A, B>, B, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for BwdSetIterator<'a, A, B> {

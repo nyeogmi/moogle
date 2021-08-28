@@ -68,6 +68,10 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
         }
     }
 
+    pub fn element_subrange(&self, k: impl RangeBounds<(K, V)>) -> btree_set::Range<'_, (K, V)> {
+        self.elements.range(k)
+    }
+
     pub fn key_subrange(&self, k: impl RangeBounds<K>) -> btree_set::Range<'_, K> {
         self.keys.range(k)
     }

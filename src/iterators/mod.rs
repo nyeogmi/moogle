@@ -8,7 +8,7 @@ use crate::moogcell::{InteriorBTreeMapRange, InteriorSetRange, InteriorVSet};
 mod range_utils;
 
 // == iterators ==
-pub(crate) struct KeyValuesIterator<'a, Parent, K: IdLike, V: 'a> {
+pub(crate) struct BTreeMapIterator<'a, Parent, K: IdLike, V: 'a> {
     iterator: InteriorBTreeMapRange<'a, Parent, K, V>,
 
     front_cursor: Option<K>,
@@ -16,9 +16,9 @@ pub(crate) struct KeyValuesIterator<'a, Parent, K: IdLike, V: 'a> {
     done: bool,
 }
 
-impl<'a, Parent, K: IdLike, V: 'a> KeyValuesIterator<'a, Parent, K, V> {
-    pub(crate) fn new(iterator: InteriorBTreeMapRange<'a, Parent, K, V>) -> KeyValuesIterator<'a, Parent, K, V> {
-        KeyValuesIterator {
+impl<'a, Parent, K: IdLike, V: 'a> BTreeMapIterator<'a, Parent, K, V> {
+    pub(crate) fn new(iterator: InteriorBTreeMapRange<'a, Parent, K, V>) -> BTreeMapIterator<'a, Parent, K, V> {
+        BTreeMapIterator {
             iterator,
 
             front_cursor: None,
@@ -69,7 +69,7 @@ impl<'a, Parent, K: IdLike, V: 'a> KeyValuesIterator<'a, Parent, K, V> {
     }
 }
 
-pub(crate) struct KeysIterator<'a, Parent, K: IdLike> {
+pub(crate) struct ToSetKeysIterator<'a, Parent, K: IdLike> {
     iterator: InteriorSetRange<'a, Parent, K>,
 
     front_cursor: Option<K>,
@@ -77,9 +77,9 @@ pub(crate) struct KeysIterator<'a, Parent, K: IdLike> {
     done: bool,
 }
 
-impl<'a, Parent, K: IdLike> KeysIterator<'a, Parent, K> {
-    pub(crate) fn new(iterator: InteriorSetRange<'a, Parent, K>) -> KeysIterator<'a, Parent, K> {
-        KeysIterator {
+impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
+    pub(crate) fn new(iterator: InteriorSetRange<'a, Parent, K>) -> ToSetKeysIterator<'a, Parent, K> {
+        ToSetKeysIterator {
             iterator,
 
             front_cursor: None,
@@ -96,7 +96,7 @@ impl<'a, Parent, K: IdLike> KeysIterator<'a, Parent, K> {
         let bc = self.back_cursor;
 
         let iterator = self.iterator.get_or_compute_arg(|xs| {
-            range_utils::make_toset_range(open_parent(xs), fc, bc)
+            range_utils::make_toset_key_range(open_parent(xs), fc, bc)
         });
         iterator
     }
@@ -128,7 +128,67 @@ impl<'a, Parent, K: IdLike> KeysIterator<'a, Parent, K> {
     }
 }
 
-pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
+pub(crate) struct ToSetKeyValueIterator<'a, Parent, K: IdLike, V: IdLike> {
+    iterator: InteriorSetRange<'a, Parent, (K, V)>,
+
+    front_cursor: Option<(K, V)>,
+    back_cursor: Option<(K, V)>,
+    done: bool,
+}
+
+impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
+    pub(crate) fn new(iterator: InteriorSetRange<'a, Parent, (K, V)>) -> ToSetKeyValueIterator<'a, Parent, K, V> {
+        ToSetKeyValueIterator {
+            iterator,
+
+            front_cursor: None,
+            back_cursor: None,
+            done: false,
+        }
+    }
+
+    fn reconstitute(
+        &mut self, 
+        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
+    ) -> &mut btree_set::Range<'a, (K, V)> {
+        let fc = self.front_cursor;
+        let bc = self.back_cursor;
+
+        let iterator = self.iterator.get_or_compute_arg(|xs| {
+            range_utils::make_toset_key_value_range(open_parent(xs), fc, bc)
+        });
+        iterator
+    }
+
+    pub(crate) fn next(
+        &mut self, 
+        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
+    ) -> Option<(K, V)> {
+        if self.done { return None; }
+
+        let iter = self.reconstitute(open_parent);
+        let k = iter.next().map(|k| *k); 
+        self.front_cursor = k; 
+        if k == None { self.done = true; }
+        k
+    }
+
+    pub(crate) fn next_back(
+        &mut self, 
+        open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>
+    ) -> Option<(K, V)> { 
+        if self.done { return None; }
+
+        let iter = self.reconstitute(open_parent);
+        let k = iter.next_back().map(|k| *k); 
+        self.back_cursor = k; 
+        if k == None { self.done = true; }
+        k
+    }
+}
+
+// TODO: Factor this out, use ToSetKeyValueIterator instead
+pub(crate) struct VSetIterator<'a, Parent, K: IdLike, V: IdLike> {
     cache: InteriorVSet<'a, Parent, K, V>,
     iterator: InteriorSetRange<'a, Parent, (K, V)>,
 
@@ -138,13 +198,13 @@ pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
     done: bool,
 }
 
-impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
+impl<'a, Parent, K: IdLike, V: IdLike> VSetIterator<'a, Parent, K, V> {
     pub(crate) fn new(
         cache: InteriorVSet<'a, Parent, K, V>,
         iterator: InteriorSetRange<'a, Parent, (K, V)>,
         key: K,
-    ) -> SetIterator<'a, Parent, K, V> {
-        SetIterator {
+    ) -> VSetIterator<'a, Parent, K, V> {
+        VSetIterator {
             cache,
             iterator,
 

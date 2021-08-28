@@ -11,7 +11,7 @@ use crate::raw_junctions::set_to_set::RawSetToSet;
 use std::collections::BTreeSet;
 
 use crate::moogcell::InteriorVSet;
-use crate::iterators::{KeysIterator, SetIterator};
+use crate::iterators::{ToSetKeysIterator, ToSetKeyValueIterator, VSetIterator};
 
 use crate::structures::VSet;
 
@@ -51,12 +51,13 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
     fn keys_len(&self) -> usize { self.me.raw.borrow().fwd().keys_len() }
 
     fn iter(&self) -> Self::Iter {
-        let me = self.me;
-        self.keys().flat_map(move |k| me.fwd().get(k).iter().map(move |v| (k, v)))
+        FwdIterator::<'a, A, B> {
+            iter: ToSetKeyValueIterator::new(self.me.raw.create_interior_btreeset_range())
+        }
     }
     fn keys(&self) -> Self::Keys {
         FwdKeysIterator::<'a, A, B> { 
-            iter: KeysIterator::new(self.me.raw.create_interior_btreeset_range())
+            iter: ToSetKeysIterator::new(self.me.raw.create_interior_btreeset_range())
         }
     }
     fn sets(&self) -> Self::Sets { 
@@ -78,7 +79,7 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, B> for FwdSet<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         FwdSetIterator {
-            iter: SetIterator::new(
+            iter: VSetIterator::new(
                 self.parent.raw.create_interior_vset(),
                 self.parent.raw.create_interior_btreeset_range(),
                 self.key,
@@ -91,8 +92,26 @@ impl <'a, A: IdLike, B: IdLike> SharedSet<'a, B> for FwdSet<'a, A, B> {
 }
 
 // == iterators ==
+struct FwdIterator<'a, A: IdLike, B: IdLike> {
+    iter: ToSetKeyValueIterator<'a, RawSetToSet<A, B>, A, B>,
+}
+
+impl<'a, A: IdLike, B: IdLike> Iterator for FwdIterator<'a, A, B> {
+    type Item = (A, B);
+
+    fn next(&mut self) -> Option<(A, B)> {
+        self.iter.next(|p| &p.fwd)
+    }
+}
+
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdIterator<'a, A, B> {
+    fn next_back(&mut self) -> Option<Self::Item> { 
+        self.iter.next_back(|p| &p.fwd)
+    }
+}
+
 struct FwdKeysIterator<'a, A: IdLike, B: IdLike> {
-    iter: KeysIterator<'a, RawSetToSet<A, B>, A>,
+    iter: ToSetKeysIterator<'a, RawSetToSet<A, B>, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdKeysIterator<'a, A, B> {
@@ -110,7 +129,7 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdKeysIterator<'a, A, B
 }
 
 struct FwdSetIterator<'a, A: IdLike, B: IdLike> {
-    iter: SetIterator<'a, RawSetToSet<A, B>, A, B>,
+    iter: VSetIterator<'a, RawSetToSet<A, B>, A, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdSetIterator<'a, A, B> {

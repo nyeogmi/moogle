@@ -4,7 +4,7 @@ use crate::moogcell::MoogCell;
 
 use crate::raw_poms::RawPom;
 
-use crate::iterators::KeyValuesIterator;
+use crate::iterators::BTreeMapIterator;
 
 pub struct Pom<T: 'static> { 
     raw: MoogCell<RawPom<T>>,
@@ -31,7 +31,7 @@ impl<T: 'static> Pom<T> {
     // can't neatly provide iter_mut or values_mut because they both would require a moogcell borrow
     pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(Id<T>, &'a T)> {
         PomIterator {
-            iter: KeyValuesIterator::new(self.raw.create_interior_btreemap_range())
+            iter: BTreeMapIterator::new(self.raw.create_interior_btreemap_range())
         }
     }
     pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=Id<T>> {
@@ -43,7 +43,7 @@ impl<T: 'static> Pom<T> {
 }
 
 struct PomIterator<'a, T: 'static> {
-    iter: KeyValuesIterator<'a, RawPom<T>, Id<T>, T>,
+    iter: BTreeMapIterator<'a, RawPom<T>, Id<T>, T>,
 }
 
 impl<'a, T: 'static> Iterator for PomIterator<'a, T> {
