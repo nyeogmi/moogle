@@ -38,7 +38,7 @@ impl<T> MoogCell<T> {
 }
 
 impl<'a, T, Item: Copy+'a> InteriorSetRange<'a, T, Item> {
-    pub(crate) fn get_or_compute_arg(
+    pub(crate) fn get_or_compute(
         &mut self, 
         compute: impl for<'b> FnOnce(&'b T) -> btree_set::Range<'b, Item> 
     ) -> &mut btree_set::Range<'a, Item> {

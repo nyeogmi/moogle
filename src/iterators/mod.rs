@@ -34,7 +34,7 @@ impl<'a, Parent, K: IdLike, V: 'a> BTreeMapIterator<'a, Parent, K, V> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute_arg(|xs| {
+        let iterator = self.iterator.get_or_compute(|xs| {
             range_utils::make_map_range(open_parent(xs), fc, bc)
         });
         iterator
@@ -95,7 +95,7 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute_arg(|xs| {
+        let iterator = self.iterator.get_or_compute(|xs| {
             range_utils::make_toset_key_range(open_parent(xs), fc, bc)
         });
         iterator
@@ -165,7 +165,7 @@ impl<'a, Parent, K: IdLike, V: IdLike> ToSetKeyValueIterator<'a, Parent, K, V> {
         let fe = self.front_element;
         let be = self.back_element;
 
-        let iterator = self.iterator.get_or_compute_arg(|xs| {
+        let iterator = self.iterator.get_or_compute(|xs| {
             range_utils::make_toset_key_value_range(
                 open_parent(xs), fc, bc, fe, be
             )
@@ -225,7 +225,7 @@ impl<'a, Parent, K: IdLike, V: IdLike> FlatIterator<'a, Parent, K, V> {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
 
-        let iterator = self.iterator.get_or_compute_arg(|xs| {
+        let iterator = self.iterator.get_or_compute(|xs| {
             range_utils::make_map_range(&open_parent(xs).0, fc, bc)
         });
         iterator
