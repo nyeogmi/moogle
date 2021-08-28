@@ -21,7 +21,8 @@ impl<T: 'static> Pom<T> {
 
     pub fn insert(&self, t: T) -> Id<T> { self.raw.borrow_mut().insert(t) }
     pub fn remove(&self, k: Id<T>) -> Option<T> { self.raw.borrow_mut().remove(k) }
-    pub fn transact(&self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { self.raw.borrow_mut().transact(k, f) }
+    pub fn transact(&self, k: Id<T>, f: impl FnOnce(Option<&T>)) { self.raw.borrow_mut().transact(k, f) }
+    pub fn transact_mut(&self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { self.raw.borrow_mut().transact_mut(k, f) }
 
     // get() is &mut because people can wreak a lot of havoc with just a & and this struct
     pub fn get(&mut self, k: Id<T>) -> Option<&T> { self.raw.get_exclusive().get(k) }
