@@ -1,17 +1,17 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use super::{Fwd, Bwd};
 
 use crate::raw_junctions::set_to_set::RawSetToSet;
-use super::super::moogcell::MoogCell;
+use crate::moogcell::MoogCell;
 
 // == Data structure ==
-pub struct SetToSet<A: Id, B: Id> {
+pub struct SetToSet<A: IdLike, B: IdLike> {
     pub(in crate::shared_junctions) raw: MoogCell<RawSetToSet<A, B>>
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> SetToSet<A, B> {
+impl<A: IdLike, B: IdLike> SetToSet<A, B> {
     pub fn new() -> SetToSet<A, B> {
         SetToSet { raw: MoogCell::new(RawSetToSet::new()) }
     }

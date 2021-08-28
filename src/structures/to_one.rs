@@ -1,11 +1,11 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 use crate::methods::{EvictSet, ViewSet};
 
 use std::collections::BTreeMap;
 
-pub(crate) struct ToOne<K: Id, V: Id>(pub(crate) BTreeMap<K, V>);
+pub(crate) struct ToOne<K: IdLike, V: IdLike>(pub(crate) BTreeMap<K, V>);
 
-impl<K: Id, V: Id> ToOne<K, V> {
+impl<K: IdLike, V: IdLike> ToOne<K, V> {
     pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=K> { 
         self.0.keys().map(|k| *k) 
     }
@@ -17,7 +17,7 @@ impl<K: Id, V: Id> ToOne<K, V> {
     }
 }
 
-impl<'a, K: Id, V: Id> ToOne<K, V> {
+impl<'a, K: IdLike, V: IdLike> ToOne<K, V> {
     pub fn new() -> Self { ToOne(BTreeMap::new()) }
 
     pub fn insert(&mut self, key: K, value: V, on_evict: impl FnOnce(K, V)) -> Option<V> { 
@@ -63,14 +63,14 @@ impl<'a, K: Id, V: Id> ToOne<K, V> {
     pub fn len(&self) -> usize { self.0.len() }
 }
 
-pub(crate) struct VOne<'a, K: Id, V: Id>(Option<V>, ::std::marker::PhantomData<&'a *const K>);
-pub(crate) struct MOne<'a, K: Id, V: Id>(K, &'a mut ToOne<K, V>);  
+pub(crate) struct VOne<'a, K: IdLike, V: IdLike>(Option<V>, ::std::marker::PhantomData<&'a *const K>);
+pub(crate) struct MOne<'a, K: IdLike, V: IdLike>(K, &'a mut ToOne<K, V>);  
 
-impl <'a, K: Id, V: Id> VOne<'a, K, V> {
+impl <'a, K: IdLike, V: IdLike> VOne<'a, K, V> {
     pub fn as_option(&self) -> Option<V> { self.0 }
 }
 
-impl<'a, K: Id, V: Id> EvictSet<'a, K, V> for MOne<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> EvictSet<'a, K, V> for MOne<'a, K, V> {
     fn insert(&mut self, v: V, on_evict: impl FnOnce(K, V)) -> Option<V> { 
         self.1.insert(self.0, v, on_evict)
     }
@@ -80,7 +80,7 @@ impl<'a, K: Id, V: Id> EvictSet<'a, K, V> for MOne<'a, K, V> {
     }
 }
 
-impl<'a, K: Id, V: Id> ViewSet<'a, V> for VOne<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for VOne<'a, K, V> {
     type Iter = impl 'a+DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool {
@@ -102,7 +102,7 @@ impl<'a, K: Id, V: Id> ViewSet<'a, V> for VOne<'a, K, V> {
     }
 }
 
-impl<'a, K: Id, V: Id> ViewSet<'a, V> for MOne<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for MOne<'a, K, V> {
     type Iter = impl 'a+DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool { 

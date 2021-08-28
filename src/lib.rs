@@ -6,25 +6,38 @@ extern crate quickcheck;
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
 
+mod id;
+
+mod iterators;
 pub mod methods;
+mod moogcell;
 mod raw_junctions;
 mod shared_junctions;
-mod keybound;
 mod structures;
 
-pub use raw_junctions::{one_to_one, RawOneToOne};
-pub use raw_junctions::{one_to_set, RawOneToSet};
-pub use raw_junctions::{set_to_one, RawSetToOne};
-pub use raw_junctions::{set_to_set, RawSetToSet};
+pub mod raw_poms;
+mod shared_poms;
+pub mod poms { pub use crate::shared_poms::*; }
 
-pub use shared_junctions::one_to_one as shared_one_to_one;
-pub use shared_junctions::OneToOne;
-pub use shared_junctions::one_to_set as shared_one_to_set;
-pub use shared_junctions::OneToSet;
-pub use shared_junctions::set_to_one as shared_set_to_one;
-pub use shared_junctions::SetToOne;
-pub use shared_junctions::set_to_set as shared_set_to_set;
-pub use shared_junctions::SetToSet;
+pub use raw_poms::RawPom;
+
+pub use poms::Pom;
+
+pub use raw_junctions::one_to_one as raw_one_to_one;
+pub use raw_junctions::one_to_set as raw_one_to_set;
+pub use raw_junctions::set_to_one as raw_set_to_one;
+pub use raw_junctions::set_to_set as raw_set_to_set;
+pub use raw_junctions::RawOneToOne;
+pub use raw_junctions::RawOneToSet;
+pub use raw_junctions::RawSetToOne;
+pub use raw_junctions::RawSetToSet;
+
+pub use shared_junctions::{one_to_one, OneToOne};
+pub use shared_junctions::{one_to_set, OneToSet};
+pub use shared_junctions::{set_to_one, SetToOne};
+pub use shared_junctions::{set_to_set, SetToSet};
+
+pub use id::Id;
 
 pub use methods::*;
 

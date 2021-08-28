@@ -1,6 +1,6 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 
-pub trait SharedSet<'a, T: Id> {
+pub trait SharedSet<'a, T: IdLike> {
     type Iter: 'a+DoubleEndedIterator<Item=T>;
 
     fn contains(&self, k: T) -> bool;
@@ -12,7 +12,7 @@ pub trait SharedSet<'a, T: Id> {
     fn remove(&self, t: T) -> Option<T>;
 }
 
-pub trait SharedAnyToOne<'a, K: Id, V: Id> {
+pub trait SharedAnyToOne<'a, K: IdLike, V: IdLike> {
     type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;
     type Keys: 'a+DoubleEndedIterator<Item=K>;
     type Values: 'a+DoubleEndedIterator<Item=V>;
@@ -35,7 +35,7 @@ pub trait SharedAnyToOne<'a, K: Id, V: Id> {
     }
 }
 
-pub trait SharedAnyToSet<'a, K: Id, V: Id> {
+pub trait SharedAnyToSet<'a, K: IdLike, V: IdLike> {
     type Multi: SharedSet<'a, V>;
     type Expunge;  // TODO: Set?
 

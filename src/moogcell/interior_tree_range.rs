@@ -2,19 +2,19 @@ use std::cell::Cell;
 use std::mem::MaybeUninit;
 use std::collections::btree_map;
 
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use super::MoogCell;
 
-pub struct InteriorTreeRange<'a, T, K: Id, V: 'static> {
+pub struct InteriorTreeRange<'a, T, K: IdLike, V: 'a> {
     owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
     // note: this is safe because Range is not Drop
-    value: MaybeUninit<btree_map::Range<'static, K, V>>, 
+    value: MaybeUninit<btree_map::Range<'a, K, V>>, 
 }
 
-impl<'a, T, K: Id, V: 'static> Clone for InteriorTreeRange<'a, T, K, V> {
+impl<'a, T, K: IdLike, V: 'static> Clone for InteriorTreeRange<'a, T, K, V> {
     fn clone(&self) -> Self { 
         InteriorTreeRange {
             owner: self.owner,
@@ -30,7 +30,7 @@ impl<'a, T, K: Id, V: 'static> Clone for InteriorTreeRange<'a, T, K, V> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_tree_range<K: Id, V: 'static>(&self) -> InteriorTreeRange<'_, T, K, V> { 
+    pub fn create_interior_tree_range<'a, K: IdLike, V: 'a>(&'a self) -> InteriorTreeRange<'a, T, K, V> { 
         InteriorTreeRange { 
             owner: self, 
             state: Cell::new(0), 
@@ -39,7 +39,7 @@ impl<T> MoogCell<T> {
     }
 }
 
-impl<'a, T, K: Id, V: 'static> InteriorTreeRange<'a, T, K, V> {
+impl<'a, T, K: IdLike, V: 'a> InteriorTreeRange<'a, T, K, V> {
     pub(crate) fn get_or_compute(
         &mut self, 
         compute: impl for<'b> FnOnce(&'b T) -> btree_map::Range<'b, K, V>
@@ -50,13 +50,11 @@ impl<'a, T, K: Id, V: 'static> InteriorTreeRange<'a, T, K, V> {
 
             let borrow = self.owner.borrow();
             let value: btree_map::Range<'_, K, V> = compute(&borrow);
-            let static_value: btree_map::Range<'static, K, V> = unsafe { std::mem::transmute(value) };
-            self.value = MaybeUninit::new(static_value);
+            let longer_value: btree_map::Range<'a, K, V> = unsafe { std::mem::transmute(value) };
+            self.value = MaybeUninit::new(longer_value);
         }
 
-        let old_ptr: &mut btree_map::Range<'static, K, V> = unsafe { self.value.assume_init_mut() };
-        let new_ptr: &mut btree_map::Range<'a, K, V> = unsafe { std::mem::transmute(old_ptr) };
-
+        let new_ptr: &mut btree_map::Range<'a, K, V> = unsafe { self.value.assume_init_mut() };
         new_ptr
     }
 }

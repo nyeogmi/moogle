@@ -1,17 +1,17 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use super::{Fwd, Bwd};
 
 use crate::raw_junctions::one_to_one::RawOneToOne;
-use super::super::moogcell::MoogCell;
+use crate::moogcell::MoogCell;
 
 // == Data structure ==
-pub struct OneToOne<A: Id, B: Id> {
+pub struct OneToOne<A: IdLike, B: IdLike> {
     pub(in crate::shared_junctions) raw: MoogCell<RawOneToOne<A, B>>
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> OneToOne<A, B> {
+impl<A: IdLike, B: IdLike> OneToOne<A, B> {
     pub fn new() -> OneToOne<A, B> {
         OneToOne { raw: MoogCell::new(RawOneToOne::new()) }
     }

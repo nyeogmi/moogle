@@ -1,6 +1,6 @@
 use super::SetToSet;
 
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use crate::methods::{SharedAnyToSet, SharedSet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
@@ -10,21 +10,21 @@ use crate::raw_junctions::set_to_set::RawSetToSet;
 
 use std::collections::BTreeSet;
 
-use super::super::moogcell::InteriorVSet;
-use super::super::iterators::{KeysIterator, SetIterator};
+use crate::moogcell::InteriorVSet;
+use crate::iterators::{KeysIterator, SetIterator};
 
 use crate::structures::VSet;
 
 // == type ==
-pub struct Fwd<'a, A: Id, B: Id> { pub(in crate::shared_junctions) me: &'a SetToSet<A, B> }
-pub struct FwdSet<'a, A: Id, B: Id> { 
+pub struct Fwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a SetToSet<A, B> }
+pub struct FwdSet<'a, A: IdLike, B: IdLike> { 
     pub(in crate::shared_junctions) parent: &'a SetToSet<A, B>, 
     cache: InteriorVSet<'a, RawSetToSet<A, B>, A, B>,
     pub(in crate::shared_junctions) key: A 
 }
 
 // == caching ==
-impl <'a, A: Id, B: Id> FwdSet<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> FwdSet<'a, A, B> {
     pub(in crate::shared_junctions) fn fetch(&self) -> VSet<'a, A, B> {
         return self.cache.get_or_compute(
             |o| o.fwd().get_short(self.key).0,
@@ -33,7 +33,7 @@ impl <'a, A: Id, B: Id> FwdSet<'a, A, B> {
 }
 
 // == main impl ==
-impl <'a, A: Id, B: Id> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
     type Multi = FwdSet<'a, A, B>;
     type Expunge = BTreeSet<B>;  
 
@@ -72,7 +72,7 @@ impl <'a, A: Id, B: Id> SharedAnyToSet<'a, A, B> for Fwd<'a, A, B> {
 }
 
 // == Forward (sets) ==
-impl <'a, A: Id, B: Id> SharedSet<'a, B> for FwdSet<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedSet<'a, B> for FwdSet<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn contains(&self, b: B) -> bool { self.fetch().contains(b) }
@@ -93,11 +93,11 @@ impl <'a, A: Id, B: Id> SharedSet<'a, B> for FwdSet<'a, A, B> {
 }
 
 // == iterators ==
-struct FwdKeysIterator<'a, A: Id, B: Id> {
+struct FwdKeysIterator<'a, A: IdLike, B: IdLike> {
     iter: KeysIterator<'a, RawSetToSet<A, B>, A, B>,
 }
 
-impl<'a, A: Id, B: Id> Iterator for FwdKeysIterator<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> Iterator for FwdKeysIterator<'a, A, B> {
     type Item = A;
 
     fn next(&mut self) -> Option<A> {
@@ -105,17 +105,17 @@ impl<'a, A: Id, B: Id> Iterator for FwdKeysIterator<'a, A, B> {
     }
 }
 
-impl <'a, A: Id, B: Id> DoubleEndedIterator for FwdKeysIterator<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdKeysIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
         self.iter.next_back(|p| &p.fwd)
     }
 }
 
-struct FwdSetIterator<'a, A: Id, B: Id> {
+struct FwdSetIterator<'a, A: IdLike, B: IdLike> {
     iter: SetIterator<'a, RawSetToSet<A, B>, A, B>,
 }
 
-impl<'a, A: Id, B: Id> Iterator for FwdSetIterator<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> Iterator for FwdSetIterator<'a, A, B> {
     type Item = B;
 
     fn next(&mut self) -> Option<B> {
@@ -123,7 +123,7 @@ impl<'a, A: Id, B: Id> Iterator for FwdSetIterator<'a, A, B> {
     }
 }
 
-impl <'a, A: Id, B: Id> DoubleEndedIterator for FwdSetIterator<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdSetIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
         self.iter.next_back(|p, k| p.fwd().get_short(k).0)
     }

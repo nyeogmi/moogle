@@ -2,18 +2,18 @@ use std::cell::Cell;
 use std::mem::MaybeUninit;
 use crate::structures::VSet;
 
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use super::MoogCell;
 
-pub struct InteriorVSet<'a, T, K: Id, V: Id> {
+pub struct InteriorVSet<'a, T, K: IdLike, V: IdLike> {
     owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
     value: Cell<MaybeUninit<VSet<'static, K, V>>>,
 }
 
-impl<'a, T, K: Id, V: Id> Clone for InteriorVSet<'a, T, K, V> {
+impl<'a, T, K: IdLike, V: IdLike> Clone for InteriorVSet<'a, T, K, V> {
     fn clone(&self) -> Self { 
         InteriorVSet {
             owner: self.owner,
@@ -30,7 +30,7 @@ impl<'a, T, K: Id, V: Id> Clone for InteriorVSet<'a, T, K, V> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_vset<K: Id, V: Id>(&self) -> InteriorVSet<'_, T, K, V> { 
+    pub fn create_interior_vset<K: IdLike, V: IdLike>(&self) -> InteriorVSet<'_, T, K, V> { 
         InteriorVSet { 
             owner: self, 
             state: Cell::new(0), 
@@ -39,7 +39,7 @@ impl<T> MoogCell<T> {
     }
 }
 
-impl<'a, T, K: Id, V: Id> InteriorVSet<'a, T, K, V> {
+impl<'a, T, K: IdLike, V: IdLike> InteriorVSet<'a, T, K, V> {
     pub(crate) fn get_or_compute(
         &self, 
         compute: impl for<'b> FnOnce(&'b T) -> VSet<'b, K, V>

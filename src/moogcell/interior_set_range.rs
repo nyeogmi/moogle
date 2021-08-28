@@ -2,11 +2,11 @@ use std::cell::Cell;
 use std::mem::MaybeUninit;
 use std::collections::btree_set;
 
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use super::MoogCell;
 
-pub struct InteriorSetRange<'a, T, K: Id> {
+pub struct InteriorSetRange<'a, T, K: IdLike> {
     owner: &'a MoogCell<T>,
     state: Cell<u64>, 
 
@@ -14,7 +14,7 @@ pub struct InteriorSetRange<'a, T, K: Id> {
     value: MaybeUninit<btree_set::Range<'static, K>>,
 }
 
-impl<'a, T, K: Id> Clone for InteriorSetRange<'a, T, K> {
+impl<'a, T, K: IdLike> Clone for InteriorSetRange<'a, T, K> {
     fn clone(&self) -> Self { 
         InteriorSetRange {
             owner: self.owner,
@@ -30,7 +30,7 @@ impl<'a, T, K: Id> Clone for InteriorSetRange<'a, T, K> {
 }
 
 impl<T> MoogCell<T> {
-    pub fn create_interior_set_range<K: Id>(&self) -> InteriorSetRange<'_, T, K> { 
+    pub fn create_interior_set_range<K: IdLike>(&self) -> InteriorSetRange<'_, T, K> { 
         InteriorSetRange { 
             owner: self, 
             state: Cell::new(0), 
@@ -39,7 +39,7 @@ impl<T> MoogCell<T> {
     }
 }
 
-impl<'a, T, K: Id> InteriorSetRange<'a, T, K> {
+impl<'a, T, K: IdLike> InteriorSetRange<'a, T, K> {
     pub(crate) fn get_or_compute(
         &mut self, 
         compute: impl FnOnce() -> btree_set::Range<'a, K>

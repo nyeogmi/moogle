@@ -1,13 +1,75 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 use crate::structures::{ToOne, ToSet, VSet};
 
-use std::collections::{BTreeSet, btree_set, btree_map};
+use std::collections::{BTreeSet, BTreeMap, btree_set, btree_map};
 
-use super::range_utils;
-use super::moogcell::{InteriorSetRange, InteriorTreeRange, InteriorVSet};
+use crate::moogcell::{InteriorSetRange, InteriorTreeRange, InteriorVSet};
+
+mod range_utils;
 
 // == iterators ==
-pub(crate) struct KeysIterator<'a, Parent, K: Id, V: Id> {
+pub(crate) struct KeyValuesIterator<'a, Parent, K: IdLike, V: 'a> {
+    iterator: InteriorTreeRange<'a, Parent, K, V>,
+
+    front_cursor: Option<K>,
+    back_cursor: Option<K>,
+    done: bool,
+}
+
+impl<'a, Parent, K: IdLike, V: 'a> KeyValuesIterator<'a, Parent, K, V> {
+    pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, V>) -> KeyValuesIterator<'a, Parent, K, V> {
+        KeyValuesIterator {
+            iterator,
+
+            front_cursor: None,
+            back_cursor: None,
+            done: false,
+        }
+    }
+
+    fn reconstitute(
+        &mut self, 
+        open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>
+    ) -> &mut btree_map::Range<'a, K, V> {
+        let fc = self.front_cursor;
+        let bc = self.back_cursor;
+
+        let iterator = self.iterator.get_or_compute(|xs| {
+            range_utils::make_btreemap_range(open_parent(xs), fc, bc)
+        });
+        iterator
+    }
+
+    pub(crate) fn next(
+        &mut self, 
+        open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>
+    ) -> Option<(K, &'a V)> {
+        if self.done { return None; }
+
+        let iter = self.reconstitute(open_parent);
+        let kv = iter.next();
+        match kv {
+            None => {self.done = true; None}
+            Some((k, v)) => { self.front_cursor = Some(*k); Some((*k, v))}
+        }
+    }
+
+    pub(crate) fn next_back(
+        &mut self, 
+        open_parent: impl FnOnce(&Parent) -> &BTreeMap<K, V>
+    ) -> Option<(K, &'a V)> { 
+        if self.done { return None; }
+
+        let iter = self.reconstitute(open_parent);
+        let kv = iter.next_back();
+        match kv {
+            None => {self.done = true; None}
+            Some((k, v)) => { self.back_cursor = Some(*k); Some((*k, v))}
+        }
+    }
+}
+
+pub(crate) struct KeysIterator<'a, Parent, K: IdLike, V: IdLike> {
     iterator: InteriorTreeRange<'a, Parent, K, BTreeSet<V>>,
 
     front_cursor: Option<K>,
@@ -15,7 +77,7 @@ pub(crate) struct KeysIterator<'a, Parent, K: Id, V: Id> {
     done: bool,
 }
 
-impl<'a, Parent, K: Id, V: Id> KeysIterator<'a, Parent, K, V> {
+impl<'a, Parent, K: IdLike, V: IdLike> KeysIterator<'a, Parent, K, V> {
     pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, BTreeSet<V>>) -> KeysIterator<'a, Parent, K, V> {
         KeysIterator {
             iterator,
@@ -66,7 +128,7 @@ impl<'a, Parent, K: Id, V: Id> KeysIterator<'a, Parent, K, V> {
     }
 }
 
-pub(crate) struct SetIterator<'a, Parent, K: Id, V: Id> {
+pub(crate) struct SetIterator<'a, Parent, K: IdLike, V: IdLike> {
     cache: InteriorVSet<'a, Parent, K, V>,
     iterator: InteriorSetRange<'a, Parent, V>,
 
@@ -76,7 +138,7 @@ pub(crate) struct SetIterator<'a, Parent, K: Id, V: Id> {
     done: bool,
 }
 
-impl<'a, Parent, K: Id, V: Id> SetIterator<'a, Parent, K, V> {
+impl<'a, Parent, K: IdLike, V: IdLike> SetIterator<'a, Parent, K, V> {
     pub(crate) fn new(
         cache: InteriorVSet<'a, Parent, K, V>,
         iterator: InteriorSetRange<'a, Parent, V>,
@@ -141,7 +203,7 @@ impl<'a, Parent, K: Id, V: Id> SetIterator<'a, Parent, K, V> {
     }
 }
 
-pub(crate) struct FlatIterator<'a, Parent, K: Id, V: Id> {
+pub(crate) struct FlatIterator<'a, Parent, K: IdLike, V: IdLike> {
     iterator: InteriorTreeRange<'a, Parent, K, V>,
 
     front_cursor: Option<K>,
@@ -149,7 +211,7 @@ pub(crate) struct FlatIterator<'a, Parent, K: Id, V: Id> {
     done: bool,
 }
 
-impl<'a, Parent, K: Id, V: Id> FlatIterator<'a, Parent, K, V> {
+impl<'a, Parent, K: IdLike, V: IdLike> FlatIterator<'a, Parent, K, V> {
     pub(crate) fn new(iterator: InteriorTreeRange<'a, Parent, K, V>) -> FlatIterator<'a, Parent, K, V> {
         FlatIterator {
             iterator,

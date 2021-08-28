@@ -1,6 +1,6 @@
 use super::SetToOne;
 
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use crate::methods::{SharedAnyToSet, SharedSet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
@@ -10,21 +10,21 @@ use crate::raw_junctions::set_to_one::RawSetToOne;
 
 use std::collections::BTreeSet;
 
-use super::super::moogcell::InteriorVSet;
-use super::super::iterators::{KeysIterator, SetIterator};
+use crate::moogcell::InteriorVSet;
+use crate::iterators::{KeysIterator, SetIterator};
 
 use crate::structures::VSet;
 
 // == type ==
-pub struct Bwd<'a, A: Id, B: Id> { pub(in crate::shared_junctions) me: &'a SetToOne<A, B> }
-pub struct BwdSet<'a, A: Id, B: Id> { 
+pub struct Bwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a SetToOne<A, B> }
+pub struct BwdSet<'a, A: IdLike, B: IdLike> { 
     pub(in crate::shared_junctions) parent: &'a SetToOne<A, B>, 
     cache: InteriorVSet<'a, RawSetToOne<A, B>, B, A>,
     pub(in crate::shared_junctions) key: B 
 }
 
 // == caching ==
-impl <'a, A: Id, B: Id> BwdSet<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> BwdSet<'a, A, B> {
     pub(in crate::shared_junctions) fn fetch(&self) -> VSet<'a, B, A> {
         return self.cache.get_or_compute(
             |o| o.bwd().get_short(self.key).0,
@@ -33,7 +33,7 @@ impl <'a, A: Id, B: Id> BwdSet<'a, A, B> {
 }
 
 // == main impl ==
-impl <'a, A: Id, B: Id> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
     type Multi = BwdSet<'a, A, B>;
     type Expunge = BTreeSet<A>;  
 
@@ -72,7 +72,7 @@ impl <'a, A: Id, B: Id> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 }
 
 // == Forward (sets) ==
-impl <'a, A: Id, B: Id> SharedSet<'a, A> for BwdSet<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedSet<'a, A> for BwdSet<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn contains(&self, a: A) -> bool { self.fetch().contains(a) }
@@ -93,11 +93,11 @@ impl <'a, A: Id, B: Id> SharedSet<'a, A> for BwdSet<'a, A, B> {
 }
 
 // == iterators ==
-struct BwdKeysIterator<'a, A: Id, B: Id> {
+struct BwdKeysIterator<'a, A: IdLike, B: IdLike> {
     iter: KeysIterator<'a, RawSetToOne<A, B>, B, A>,
 }
 
-impl<'a, A: Id, B: Id> Iterator for BwdKeysIterator<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> Iterator for BwdKeysIterator<'a, A, B> {
     type Item = B;
 
     fn next(&mut self) -> Option<B> {
@@ -105,17 +105,17 @@ impl<'a, A: Id, B: Id> Iterator for BwdKeysIterator<'a, A, B> {
     }
 }
 
-impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdKeysIterator<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdKeysIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
         self.iter.next_back(|p| &p.bwd)
     }
 }
 
-struct BwdSetIterator<'a, A: Id, B: Id> {
+struct BwdSetIterator<'a, A: IdLike, B: IdLike> {
     iter: SetIterator<'a, RawSetToOne<A, B>, B, A>,
 }
 
-impl<'a, A: Id, B: Id> Iterator for BwdSetIterator<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> Iterator for BwdSetIterator<'a, A, B> {
     type Item = A;
 
     fn next(&mut self) -> Option<A> {
@@ -123,7 +123,7 @@ impl<'a, A: Id, B: Id> Iterator for BwdSetIterator<'a, A, B> {
     }
 }
 
-impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdSetIterator<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdSetIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
         self.iter.next_back(|p, k| p.bwd().get_short(k).0)
     }

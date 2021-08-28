@@ -1,4 +1,4 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 use crate::methods::{EvictSet, ViewSet};
 
 use std::collections::{BTreeSet, BTreeMap};
@@ -10,7 +10,7 @@ pub(crate) struct ToSet<K, V> {
     total_len: usize,
 }
 
-impl<K: Id, V: Id> ToSet<K, V> {
+impl<K: IdLike, V: IdLike> ToSet<K, V> {
     pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(K, V)> { 
         self.elements.iter().flat_map(|(k, vs)|
             vs.iter().map(move |v| (*k, *v))
@@ -27,7 +27,7 @@ impl<K: Id, V: Id> ToSet<K, V> {
 }
 
 // TODO: Track _total_ len (as in, number of pairs)
-impl<'a, K: Id, V: Id> ToSet<K, V> {
+impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
     pub fn new() -> Self { ToSet { elements: BTreeMap::new(), total_len: 0 } }
 
     pub fn insert(&mut self, key: K, value: V, _on_evict: impl FnOnce(K, V)) -> Option<V> { 
@@ -87,14 +87,14 @@ impl<'a, K: Id, V: Id> ToSet<K, V> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct VSet<'a, K: Id, V: Id>(pub(crate) Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
-pub(crate) struct MSet<'a, K: Id, V: Id>(K, &'a mut ToSet<K, V>);  
+pub(crate) struct VSet<'a, K: IdLike, V: IdLike>(pub(crate) Option<&'a BTreeSet<V>>, ::std::marker::PhantomData<*const K>);
+pub(crate) struct MSet<'a, K: IdLike, V: IdLike>(K, &'a mut ToSet<K, V>);  
 
-impl<'a, K: Id, V: Id> MSet<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> MSet<'a, K, V> {
     pub fn key(&self) -> K { self.0 }
 }
 
-impl<'a, K: Id, V: Id> EvictSet<'a, K, V> for MSet<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> EvictSet<'a, K, V> for MSet<'a, K, V> {
     fn insert(&mut self, v: V, on_evict: impl FnOnce(K, V)) -> Option<V> { 
         self.1.insert(self.0, v, on_evict)
     }
@@ -105,7 +105,7 @@ impl<'a, K: Id, V: Id> EvictSet<'a, K, V> for MSet<'a, K, V> {
 }
 
 
-impl<'a, K: Id, V: Id> ViewSet<'a, V> for VSet<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for VSet<'a, K, V> {
     type Iter = impl 'a+DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool {
@@ -127,7 +127,7 @@ impl<'a, K: Id, V: Id> ViewSet<'a, V> for VSet<'a, K, V> {
     }
 }
 
-impl<'a, K: Id, V: Id> ViewSet<'a, V> for MSet<'a, K, V> {
+impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for MSet<'a, K, V> {
     type Iter = impl DoubleEndedIterator<Item=V>;
 
     fn contains(&self, v: V) -> bool { 

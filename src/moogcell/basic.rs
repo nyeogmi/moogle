@@ -2,7 +2,7 @@ use std::cell::{Cell, RefCell, Ref, RefMut};
 
 
 pub struct MoogCell<T> {
-    pub(in crate::shared_junctions::moogcell) state: Cell<u64>,
+    pub(in crate::moogcell) state: Cell<u64>,
     inner: RefCell<T>,
 }
 
@@ -18,8 +18,12 @@ impl<T> MoogCell<T> {
 
     pub fn borrow(&self) -> Ref<'_, T> { self.inner.borrow() }
     pub fn borrow_mut(&self) -> RefMut<'_, T> { 
-        let result = self.inner.borrow_mut();
         self.mark_dirty();
-        result
+        self.inner.borrow_mut()
+    }
+
+    pub fn get_mut(&mut self) -> &mut T {
+        self.mark_dirty();
+        self.inner.get_mut()
     }
 }

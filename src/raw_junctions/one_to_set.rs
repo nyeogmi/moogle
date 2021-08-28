@@ -1,4 +1,4 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use crate::methods::{ViewAnyToSet, AnyToSet, ViewAnyToOne, AnyToOne};
 use crate::methods::{ViewSet, Set, EvictSet};
@@ -9,40 +9,40 @@ use crate::structures::{ToSet, VSet, MSet};
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct RawOneToSet<A: Id, B: Id> {
+pub struct RawOneToSet<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToSet<A, B>,
     pub(crate) bwd: ToOne<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> RawOneToSet<A, B> {
+impl<A: IdLike, B: IdLike> RawOneToSet<A, B> {
     pub fn new() -> RawOneToSet<A, B> {
         RawOneToSet { fwd: ToSet::new(), bwd: ToOne::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToSet<A, B>);
-pub struct MFwdSet<'a, A: Id, B: Id>(pub(crate) MSet<'a, A, B>, &'a mut ToOne<B, A>);
-pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToSet<A, B>);
+pub struct MFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawOneToSet<A, B>);
+pub struct MFwdSet<'a, A: IdLike, B: IdLike>(pub(crate) MSet<'a, A, B>, &'a mut ToOne<B, A>);
+pub struct MBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawOneToSet<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToSet<A, B>);
-pub struct VFwdSet<'a, A: Id, B: Id>(pub(crate) VSet<'a, A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToSet<A, B>);
+pub struct VFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawOneToSet<A, B>);
+pub struct VFwdSet<'a, A: IdLike, B: IdLike>(pub(crate) VSet<'a, A, B>);
+pub struct VBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawOneToSet<A, B>);
 
 // == Accessors ==
-impl<A: Id, B: Id> RawOneToSet<A, B> {
+impl<A: IdLike, B: IdLike> RawOneToSet<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> RawOneToSet<A, B> {
+impl<A: IdLike, B: IdLike> RawOneToSet<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 
 
 // == Forward ==
-impl<'a, A: Id, B: Id> AnyToSet<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnyToSet<'a, A, B> for MFwd<'a, A, B> {
     type MMulti = MFwdSet<'a, A, B>;
     type MExpunge = BTreeSet<B>;
 
@@ -66,7 +66,7 @@ impl<'a, A: Id, B: Id> AnyToSet<'a, A, B> for MFwd<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=A>;
@@ -79,17 +79,19 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     fn len(&self) -> usize { self.0.fwd.len() }
     fn keys_len(&self) -> usize { self.0.fwd.keys_len() }
 
+    fn contains(&self, a: A, b: B) -> bool { self.0.fwd.get(a).contains(b) }
+
     fn iter(&'a self) -> Self::Iter { self.0.fwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
-impl<'a, A: Id, B: Id> VFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> VFwd<'a, A, B> {
     pub(crate) fn get_short(&self, a: A) -> VFwdSet<'a, A, B> { VFwdSet(self.0.fwd.get(a)) }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=A>;
@@ -102,6 +104,8 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
     fn len(&self) -> usize { self.0.fwd.len() }
     fn keys_len(&self) -> usize { self.0.fwd.keys_len() }
 
+    fn contains(&self, a: A, b: B) -> bool { self.0.fwd.get(a).contains(b) }
+
     fn iter(&'a self) -> Self::Iter { self.0.fwd.iter() }
     fn keys(&'a self) -> Self::Keys { self.0.fwd.keys() }
     fn sets(&'a self) -> Self::Sets { self.0.fwd.keys().map(move |k| (k, self.get(k))) }
@@ -109,7 +113,7 @@ impl<'a, A: Id, B: Id> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
 }
 
 // == Forward (sets) ==
-impl<'a, A: Id, B: Id> Set<'a, B> for MFwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> Set<'a, B> for MFwdSet<'a, A, B> {
     fn insert(&mut self, b: B) -> Option<B> { 
         let alt = &mut self.1;
         let result = self.0.insert(b.clone(), move |k, v| { alt.remove(v, k, |_, _|{}); });
@@ -126,7 +130,7 @@ impl<'a, A: Id, B: Id> Set<'a, B> for MFwdSet<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewSet<'a, B> for MFwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewSet<'a, B> for MFwdSet<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn contains(&self, b: B) -> bool { self.0.contains(b) }
@@ -135,7 +139,7 @@ impl<'a, A: Id, B: Id> ViewSet<'a, B> for MFwdSet<'a, A, B> {
     fn iter(&'a self) -> Self::Iter { self.0.iter() }
 }
 
-impl<'a, A: Id, B: Id> ViewSet<'a, B> for VFwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewSet<'a, B> for VFwdSet<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=B>;
 
     fn contains(&self, b: B) -> bool { self.0.contains(b) }
@@ -145,7 +149,7 @@ impl<'a, A: Id, B: Id> ViewSet<'a, B> for VFwdSet<'a, A, B> {
 }
 
 // == Backward ==
-impl<'a, A: Id, B: Id> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
     fn insert(&mut self, b: B, a: A) -> Option<A> {
         let fwd = &mut self.0.fwd;
         let result = self.0.bwd.insert(b.clone(), a.clone(), move |k, v| { fwd.remove(v, k, |_, _|{}); });
@@ -161,7 +165,7 @@ impl<'a, A: Id, B: Id> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;
     type Values = impl 'a+DoubleEndedIterator<Item=A>;
@@ -175,7 +179,7 @@ impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.0.bwd.values() }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for VBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, B, A> for VBwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;
     type Values = impl 'a+DoubleEndedIterator<Item=A>;

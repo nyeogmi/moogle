@@ -1,6 +1,6 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 
-pub trait ViewSet<'a, T: Id> {
+pub trait ViewSet<'a, T: IdLike> {
     type Iter: 'a+DoubleEndedIterator<Item=T>;
 
     fn contains(&self, k: T) -> bool;
@@ -9,7 +9,7 @@ pub trait ViewSet<'a, T: Id> {
     fn iter(&'a self) -> Self::Iter;
 }
 
-pub trait ViewAnyToOne<'a, K: Id, V: Id> {
+pub trait ViewAnyToOne<'a, K: IdLike, V: IdLike> {
     type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;
     type Keys: 'a+DoubleEndedIterator<Item=K>;
     type Values: 'a+DoubleEndedIterator<Item=V>;
@@ -25,7 +25,7 @@ pub trait ViewAnyToOne<'a, K: Id, V: Id> {
     fn values(&'a self) -> Self::Values;
 }
 
-pub trait ViewAnyToSet<'a, K: Id, V: Id> {
+pub trait ViewAnyToSet<'a, K: IdLike, V: IdLike> {
     type VMulti: ViewSet<'a, V>;
 
     type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;
@@ -39,7 +39,7 @@ pub trait ViewAnyToSet<'a, K: Id, V: Id> {
     fn len(&self) -> usize;  // TODO: Make sure it matches iter()
     fn keys_len(&self) -> usize;  // TODO: Make sure it matches iter()
 
-    fn contains(&'a self, k: K, v: V) -> bool { self.get(k).contains(v) }
+    fn contains(&self, k: K, v: V) -> bool;
 
     fn iter(&'a self) -> Self::Iter;
     fn keys(&'a self) -> Self::Keys;

@@ -5,14 +5,14 @@ use crate::methods::{ViewAnyToOne, AnyToOne};
 
 use crate::raw_junctions::one_to_one::RawOneToOne;
 
-use super::super::iterators::{FlatIterator};
+use crate::iterators::{FlatIterator};
 
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 // == type ==
-pub struct Bwd<'a, A: Id, B: Id> { pub(in crate::shared_junctions) me: &'a OneToOne<A, B> }
+pub struct Bwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a OneToOne<A, B> }
 
-impl <'a, A: Id, B: Id> SharedAnyToOne<'a, B, A> for Bwd<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedAnyToOne<'a, B, A> for Bwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;
     type Values = impl 'a+DoubleEndedIterator<Item=A>;
@@ -34,11 +34,11 @@ impl <'a, A: Id, B: Id> SharedAnyToOne<'a, B, A> for Bwd<'a, A, B> {
 }
 
 // == iterators ==
-struct BwdFlatIterator<'a, A: Id, B: Id> {
+struct BwdFlatIterator<'a, A: IdLike, B: IdLike> {
     iter: FlatIterator<'a, RawOneToOne<A, B>, B, A>,
 
 }
-impl<'a, A: Id, B: Id> Iterator for BwdFlatIterator<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> Iterator for BwdFlatIterator<'a, A, B> {
     type Item = (B, A);
 
     fn next(&mut self) -> Option<(B, A)> {
@@ -46,7 +46,7 @@ impl<'a, A: Id, B: Id> Iterator for BwdFlatIterator<'a, A, B> {
     }
 }
 
-impl <'a, A: Id, B: Id> DoubleEndedIterator for BwdFlatIterator<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdFlatIterator<'a, A, B> {
     fn next_back(&mut self) -> Option<Self::Item> { 
         self.iter.next_back(|p| &p.bwd)
     }

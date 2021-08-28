@@ -1,10 +1,10 @@
 use std::collections::{btree_map, BTreeMap, btree_set, BTreeSet};
 
 use crate::structures::ToSet;
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 #[inline]
-pub(crate) fn make_toset_range<K: Id, V: Id>(
+pub(crate) fn make_toset_range<K: IdLike, V: IdLike>(
     vs: &ToSet<K, V>, front_cursor: Option<K>, back_cursor: Option<K>,
 ) -> btree_map::Range<'_, K, BTreeSet<V>> {
     match (front_cursor, back_cursor) {

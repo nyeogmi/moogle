@@ -1,42 +1,42 @@
-use crate::keybound::Id;
+use crate::id::IdLike;
 
 use crate::methods::{ViewAnyToOne, AnyToOne};
 
 use crate::structures::{ToOne};
 
 // == Data structure ==
-pub struct RawOneToOne<A: Id, B: Id> {
+pub struct RawOneToOne<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToOne<A, B>,
     pub(crate) bwd: ToOne<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: Id, B: Id> RawOneToOne<A, B> {
+impl<A: IdLike, B: IdLike> RawOneToOne<A, B> {
     pub fn new() -> RawOneToOne<A, B> {
         RawOneToOne { fwd: ToOne::new(), bwd: ToOne::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToOne<A, B>);
-pub struct MBwd<'a, A: Id, B: Id>(pub(crate) &'a mut RawOneToOne<A, B>);
+pub struct MFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawOneToOne<A, B>);
+pub struct MBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawOneToOne<A, B>);
 
-pub struct VFwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToOne<A, B>);
-pub struct VBwd<'a, A: Id, B: Id>(pub(crate) &'a RawOneToOne<A, B>);
+pub struct VFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawOneToOne<A, B>);
+pub struct VBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawOneToOne<A, B>);
 
 // == Accessors ==
-impl<A: Id, B: Id> RawOneToOne<A, B> {
+impl<A: IdLike, B: IdLike> RawOneToOne<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: Id, B: Id> RawOneToOne<A, B> {
+impl<A: IdLike, B: IdLike> RawOneToOne<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 
 
 // == Forward ==
-impl<'a, A: Id, B: Id> AnyToOne<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnyToOne<'a, A, B> for MFwd<'a, A, B> {
     fn insert(&mut self, a: A, b: B) -> Option<B> {
         let bwd = &mut self.0.bwd;
         let result = self.0.fwd.insert(a.clone(), b.clone(), move |k, v| { bwd.remove(v, k, |_, _|{}); });
@@ -53,7 +53,7 @@ impl<'a, A: Id, B: Id> AnyToOne<'a, A, B> for MFwd<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, A, B> for MFwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=A>;
     type Values = impl 'a+DoubleEndedIterator<Item=B>;
@@ -67,7 +67,7 @@ impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for MFwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.0.fwd.values() }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for VFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, A, B> for VFwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=A>;
     type Values = impl 'a+DoubleEndedIterator<Item=B>;
@@ -82,7 +82,7 @@ impl<'a, A: Id, B: Id> ViewAnyToOne<'a, A, B> for VFwd<'a, A, B> {
 }
 
 // == Backward ==
-impl<'a, A: Id, B: Id> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
     fn insert(&mut self, b: B, a: A) -> Option<A> {
         let fwd = &mut self.0.fwd;
         let result = self.0.bwd.insert(b.clone(), a.clone(), move |k, v| { fwd.remove(v, k, |_, _|{}); });
@@ -98,7 +98,7 @@ impl<'a, A: Id, B: Id> AnyToOne<'a, B, A> for MBwd<'a, A, B> {
     }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;
     type Values = impl 'a+DoubleEndedIterator<Item=A>;
@@ -112,7 +112,7 @@ impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for MBwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.0.bwd.values() }
 }
 
-impl<'a, A: Id, B: Id> ViewAnyToOne<'a, B, A> for VBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, B, A> for VBwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;
     type Values = impl 'a+DoubleEndedIterator<Item=A>;
