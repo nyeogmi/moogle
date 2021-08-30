@@ -3,9 +3,8 @@ pub use super::common_fixture::{items_only, items_or_work};
 
 #[derive(Clone, Debug)]
 pub(crate) enum Phase {
-    Insert { fwd: Vec<IterWorkOr<(u16, i16)>>, bwd: Vec<IterWorkOr<(i16, u16)>> },
-    Expunge { fwd: Vec<IterWorkOr<u16>>, bwd: Vec<IterWorkOr<i16>> },
-    Remove { fwd: Vec<IterWorkOr<(u16, i16)>>, bwd: Vec<IterWorkOr<(i16, u16)>> },
+    Insert { opts: Vec<IterWorkOr<u16>> },
+    Remove { opts: Vec<IterWorkOr<u16>> },
 }
 
 #[derive(Clone, Debug)]
@@ -24,10 +23,9 @@ impl quickcheck::Arbitrary for Routine {
 
 impl quickcheck::Arbitrary for Phase {
     fn arbitrary(g: &mut quickcheck::Gen) -> Phase { 
-        let options: [fn(&mut quickcheck::Gen) -> Phase; 3] = [
-            |g_| Phase::Insert { fwd: Vec::arbitrary(g_), bwd: Vec::arbitrary(g_) },
-            |g_| Phase::Expunge { fwd: Vec::arbitrary(g_), bwd: Vec::arbitrary(g_) },
-            |g_| Phase::Remove { fwd: Vec::arbitrary(g_), bwd: Vec::arbitrary(g_) },
+        let options: [fn(&mut quickcheck::Gen) -> Phase; 2] = [
+            |g_| Phase::Insert { opts: Vec::arbitrary(g_) },
+            |g_| Phase::Remove { opts: Vec::arbitrary(g_) },
         ];
         g.choose(&options).unwrap()(g)
     }
