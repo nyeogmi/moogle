@@ -38,7 +38,10 @@ fn main() {
 
     println!("Roll call! {:?}", [m1, m2, m3, m4, m5, m6, m7]);
 
+    println!("Table: {:#?}", table);
     let (index, mut elements) = table.share();
+    println!("Index: {:#?}", index);
+    println!("Elements: {:#?}", elements);
     for m in index.keys() {
         println!("It's {:?}: {:?}", m, elements.get(m));
         *elements.get_mut(m4).unwrap() = "Kwilly!";

@@ -2,6 +2,8 @@ use crate::Id;
 
 use std::collections::BTreeMap;
 
+mod debug_impl;
+
 pub struct RawPom<T> { 
     next_id: u64,
     pub(crate) members: BTreeMap<Id<T>, T>

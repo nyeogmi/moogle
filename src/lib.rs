@@ -54,7 +54,7 @@ pub use shared_poms::Pom;
 
 // == misc ==
 mod id;
-pub use id::Id;
+pub use id::{Id, IdLike};
 
 pub mod methods;
 pub use methods::*;

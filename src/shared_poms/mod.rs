@@ -2,6 +2,8 @@ use crate::{Id, Set, RawPom};
 
 use crate::methods::*;
 
+mod debug_impl;
+
 pub struct Pom<T: 'static> { 
     // TODO: Raw set
     index: Set<Id<T>>,
