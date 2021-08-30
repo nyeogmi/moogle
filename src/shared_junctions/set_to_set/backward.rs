@@ -48,7 +48,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
     }
     fn keys(&self) -> Self::Keys {
         BwdKeysIterator::<'a, A, B> { 
-            iter: ToSetKeysIterator::new(self.me.raw.create_interior_set_range())
+            iter: ToSetKeysIterator::new(self.me.raw.create_interior_map_range())
         }
     }
     fn sets(&self) -> Self::Sets { 

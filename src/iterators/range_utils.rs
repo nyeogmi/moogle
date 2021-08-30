@@ -1,12 +1,12 @@
 use std::collections::{btree_map, BTreeMap, btree_set};
 
-use crate::internal_structures::ToSet;
+use crate::internal_structures::{ToSet, ToSetMetadata};
 use crate::id::IdLike;
 
 #[inline]
 pub(crate) fn make_toset_key_range<K: IdLike, V: IdLike>(
     vs: &ToSet<K, V>, front_cursor: Option<K>, back_cursor: Option<K>,
-) -> btree_set::Range<'_, K> {
+) -> btree_map::Range<'_, K, ToSetMetadata> {
     match (front_cursor, back_cursor) {
         (Some(f), Some(b)) => {
             let mut l = vs.key_subrange(f..=b);

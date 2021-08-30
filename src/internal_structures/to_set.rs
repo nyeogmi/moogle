@@ -2,12 +2,18 @@ use crate::id::IdLike;
 use crate::methods::{EvictSet, ViewSet};
 
 use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::collections::btree_set;
+use std::collections::btree_map;
 use std::ops::RangeBounds;
 
 pub(crate) struct ToSet<K, V> {
-    keys: BTreeSet<K>,
+    keys: BTreeMap<K, Metadata>,
     elements: BTreeSet<(K, V)>,
+}
+
+pub(crate) struct Metadata {
+    count: usize,
 }
 
 
@@ -17,17 +23,17 @@ impl<K: IdLike, V: IdLike> ToSet<K, V> {
     }
 
     pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=K> { 
-        self.keys.iter().map(|k| *k) 
+        self.keys.iter().map(|(k, _)| *k) 
     }
 
     pub(crate) fn sets<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(K, VSet<'a, K, V>)> { 
-        self.keys.iter().map(move |k| (*k, self.get(*k)))
+        self.keys.iter().map(move |(k, _)| (*k, self.get(*k)))
     }
 }
 
 impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
     pub fn new() -> Self { ToSet { 
-        keys: BTreeSet::new(),
+        keys: BTreeMap::new(),
         elements: BTreeSet::new(), 
     } }
 
@@ -37,7 +43,10 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
         // no benefit to calling the _on_evict callback because the opposed data structure it updates will imemdiately re-add this key
         // however, to caller, pretend we evicted
         if is_new { 
-            self.keys.insert(key);
+            match self.keys.entry(key) {
+                btree_map::Entry::Occupied(mut v) => { v.get_mut().count += 1; }
+                btree_map::Entry::Vacant(v) => { v.insert(Metadata { count: 1 }); }
+            };
             None 
         } else { 
             Some(value) 
@@ -57,7 +66,7 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
         self.elements.range(k)
     }
 
-    pub fn key_subrange(&self, k: impl RangeBounds<K>) -> btree_set::Range<'_, K> {
+    pub fn key_subrange(&self, k: impl RangeBounds<K>) -> btree_map::Range<'_, K, Metadata> {
         self.keys.range(k)
     }
 
@@ -76,6 +85,17 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
 
     pub fn remove(&mut self, key: K, value: V, on_evict: impl FnOnce(K, V)) -> Option<V> {
         if self.elements.remove(&(key, value)) {
+            match self.keys.entry(key) {
+                btree_map::Entry::Occupied(mut o) => {
+                    let om = o.get_mut();
+                    if om.count > 1 {
+                        om.count -= 1;
+                    } else {
+                        o.remove_entry();
+                    }
+                }
+                btree_map::Entry::Vacant(_) => {}
+            }
             if self.key_range(key).next().is_none() { self.keys.remove(&key); }
             on_evict(key, value);
             return Some(value);
@@ -85,7 +105,7 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
 
     pub fn get(&'a self, key: K) -> VSet<'a, K, V> { VSet { key, map: self } }
     pub fn get_mut(&'a mut self, key: K) -> MSet<'a, K, V> { MSet { key, map: self } }
-    pub fn contains_key(&self, key: K) -> bool { self.keys.contains(&key) }
+    pub fn contains_key(&self, key: K) -> bool { self.keys.contains_key(&key) }
 
     pub fn len(&self) -> usize { self.elements.len() }
     pub fn keys_len(&self) -> usize { self.keys.len() }
@@ -125,8 +145,7 @@ impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for VSet<'a, K, V> {
     }
 
     fn len(&self) -> usize { 
-        // TODO: This is a terrible implementation and should be done with a separate struct under keys
-        self.map.key_range(self.key).count()
+        self.map.keys.get(&self.key).map_or(0, |f| f.count)
     }
 
     fn iter(&self) -> Self::Iter { 

@@ -1,5 +1,5 @@
 use crate::id::IdLike;
-use crate::internal_structures::ToSet;
+use crate::internal_structures::{ToSet, ToSetMetadata};
 
 use std::collections::{BTreeMap, btree_set, btree_map};
 
@@ -70,7 +70,7 @@ impl<'a, Parent, K: IdLike, V: Copy> BTreeMapIterator<'a, Parent, K, V> {
 }
 
 pub(crate) struct ToSetKeysIterator<'a, Parent, K: IdLike> {
-    iterator: InteriorSetRange<'a, Parent, K>,
+    iterator: InteriorMapRange<'a, Parent, K, ToSetMetadata>,
 
     front_cursor: Option<K>,
     back_cursor: Option<K>,
@@ -78,7 +78,7 @@ pub(crate) struct ToSetKeysIterator<'a, Parent, K: IdLike> {
 }
 
 impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
-    pub(crate) fn new(iterator: InteriorSetRange<'a, Parent, K>) -> ToSetKeysIterator<'a, Parent, K> {
+    pub(crate) fn new(iterator: InteriorMapRange<'a, Parent, K, ToSetMetadata>) -> ToSetKeysIterator<'a, Parent, K> {
         ToSetKeysIterator {
             iterator,
 
@@ -91,7 +91,7 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
     fn reconstitute<V: IdLike, T>(
         &mut self, 
         open_parent: impl FnOnce(&Parent) -> &ToSet<K, V>,
-        body: impl FnOnce(&mut btree_set::Range<'_, K>) -> T
+        body: impl FnOnce(&mut btree_map::Range<'_, K, ToSetMetadata>) -> T
     ) -> T {
         let fc = self.front_cursor;
         let bc = self.back_cursor;
@@ -108,7 +108,7 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
     ) -> Option<K> {
         if self.done { return None; }
 
-        let k = self.reconstitute(open_parent, |iter| { iter.next().map(|k| *k) });
+        let k = self.reconstitute(open_parent, |iter| { iter.next().map(|(k, _)| *k) });
         self.front_cursor = k; 
         if k == None { self.done = true; }
         k
@@ -120,7 +120,7 @@ impl<'a, Parent, K: IdLike> ToSetKeysIterator<'a, Parent, K> {
     ) -> Option<K> { 
         if self.done { return None; }
 
-        let k = self.reconstitute(open_parent, |iter| { iter.next_back().map(|k| *k) });
+        let k = self.reconstitute(open_parent, |iter| { iter.next_back().map(|(k, _)| *k) });
         self.back_cursor = k; 
         if k == None { self.done = true; }
         k
