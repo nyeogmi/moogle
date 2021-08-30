@@ -5,7 +5,6 @@ use crate::methods::*;
 mod debug_impl;
 
 pub struct Pom<T: 'static> { 
-    // TODO: Raw set
     index: Set<Id<T>>,
     elements: RawPom<T>,
 }
@@ -26,6 +25,19 @@ impl<T: 'static> Pom<T> {
     pub fn remove(&mut self, k: Id<T>) -> Option<T> { 
         self.index.fwd().remove(k);
         self.elements.remove(k) 
+    }
+
+    pub fn get(&self, k: Id<T>) -> Option<&T> { 
+        self.elements.get(k) 
+    }
+    pub fn get_mut(&mut self, k: Id<T>) -> Option<&mut T> { 
+        self.elements.get_mut(k) 
+    }
+    pub fn contains_key(&self, k: Id<T>) -> bool { 
+        self.elements.contains_key(k)
+    }
+    pub fn len(&self) -> usize { 
+        self.elements.len() 
     }
 
     pub fn share<'a>(&'a mut self) -> (Index<'a, T>, Elements<'a, T>) {
@@ -59,13 +71,6 @@ impl<'a, T> Index<'a, T> {
 }
 
 impl<'a, T> Elements<'a, T> {
-    pub fn transact(&mut self, k: Id<T>, f: impl FnOnce(Option<&T>)) { 
-        self.0.transact(k, f) 
-    }
-    pub fn transact_mut(&mut self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { 
-        self.0.transact_mut(k, f) 
-    }
-
     pub fn get(&self, k: Id<T>) -> Option<&T> { 
         self.0.get(k) 
     }

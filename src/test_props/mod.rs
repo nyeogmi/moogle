@@ -7,6 +7,8 @@ mod iterbank;
 mod mappy_fixture;
 mod mappy_properties;
 
+// each pom test has its own fixture and properties
+
 mod setty_fixture;
 mod setty_properties;
 
@@ -15,3 +17,6 @@ mod raw_structures;
 
 mod shared_junctions;
 mod shared_structures;
+
+mod raw_poms;
+mod shared_poms;

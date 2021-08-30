@@ -3,11 +3,12 @@
 
 Small:
 
-- Make documentation reflect that data structures are available
+- Make documentation reflect that data structures and poms are available
 - Relax the lifetime constraints involving raw junctions. (Should be possible now that the vset implementation is changed.)
 - Actually unit test poms
 - Unit test data structures
 - Better `len()` implementation for ToSet
+- Proptest lexicographic order
 
 Medium:
 
