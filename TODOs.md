@@ -7,7 +7,6 @@ Small:
   (I just rewrote this)
 - Make documentation reflect that data structures and poms are available
 - Relax the lifetime constraints involving raw junctions. (Should be possible now that the vset implementation is changed.)
-- Better `len()` implementation for ToSet
 - Proptest lexicographic order
 
 Medium:
