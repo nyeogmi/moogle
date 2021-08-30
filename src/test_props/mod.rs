@@ -5,5 +5,7 @@ mod fixture;
 mod iterbank;
 mod properties;
 
-mod raw;
-mod shared;
+mod raw_junctions;
+mod raw_structures;
+mod shared_junctions;
+mod shared_structures;
