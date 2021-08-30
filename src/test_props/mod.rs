@@ -1,9 +1,9 @@
 // TODO: Check for Miri and if so, shorten the tests etc.
 // Use [cfg(miri)] or cfg!(miri)
 
-mod fixture;
+mod mappy_fixture;
 mod iterbank;
-mod properties;
+mod mappy_properties;
 
 mod raw_junctions;
 mod raw_structures;

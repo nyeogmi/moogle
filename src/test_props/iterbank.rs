@@ -1,4 +1,4 @@
-use super::fixture::IterWork;
+use super::mappy_fixture::IterWork;
 
 pub const DESIRED_N_ITERATORS: usize = 4;
 

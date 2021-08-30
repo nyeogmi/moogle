@@ -2,10 +2,10 @@
 // Specifically, if you see "unused import", you can probably bet that the property listed here
 // is not provided (or at least not tested for)
 // This lets you spot-check what each bimap has
-use crate::test_props::fixture::*;
+use crate::test_props::mappy_fixture::*;
 use crate::methods::*;
-use crate::test_props::properties::{fwd_equal, fwd_correct_len};
-use crate::test_props::properties::{pair_unique, fwd_unique}; 
+use crate::test_props::mappy_properties::{fwd_equal, fwd_correct_len};
+use crate::test_props::mappy_properties::{pair_unique, fwd_unique}; 
 use crate::RawToOne as T;
 
 impl crate::RawToOne<u16, i16> {
