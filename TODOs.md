@@ -3,8 +3,10 @@
 
 Small:
 
+- Make documentation reflecet that data structures are available
 - Relax the lifetime constraints involving raw junctions. (Should be possible now that the vset implementation is changed.)
 - Actually unit test poms
+- Unit test data structures
 - Better `len()` implementation for ToSet
 
 Medium:
