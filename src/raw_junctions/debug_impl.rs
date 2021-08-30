@@ -3,7 +3,7 @@ use std::fmt;
 
 use crate::id::IdLike;
 
-use crate::structures::{ToOne, ToSet};
+use crate::internal_structures::{ToOne, ToSet};
 use crate::methods::ViewSet;
 
 

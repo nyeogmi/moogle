@@ -2,7 +2,7 @@ use crate::id::IdLike;
 
 use crate::methods::{ViewAnyToOne, AnyToOne};
 
-use crate::structures::{ToOne};
+use crate::internal_structures::{ToOne};
 
 // == Data structure ==
 pub struct RawOneToOne<A: IdLike, B: IdLike> {

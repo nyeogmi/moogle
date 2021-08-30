@@ -1,9 +1,9 @@
 use crate::id::IdLike;
 
 use crate::methods::{ViewAnyToSet, AnyToSet};
-use crate::methods::{ViewSet, Set, EvictSet};
+use crate::methods::{ViewSet, AnySet, EvictSet};
 
-use crate::structures::{ToSet, VSet, MSet};
+use crate::internal_structures::{ToSet, VSet, MSet};
 
 use std::collections::BTreeSet;
 
@@ -108,7 +108,7 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
 }
 
 // == Forward (sets) ==
-impl<'a, A: IdLike, B: IdLike> Set<'a, B> for MFwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnySet<'a, B> for MFwdSet<'a, A, B> {
     fn insert(&mut self, b: B) -> Option<B> { 
         let alt = &mut self.1;
         let result = self.0.insert(b.clone(), move |k, v| { alt.remove(v, k, |_, _|{}); });
@@ -208,7 +208,7 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, B, A> for VBwd<'a, A, B> {
 }
 
 // == Backward (sets) ==
-impl<'a, A: IdLike, B: IdLike> Set<'a, A> for MBwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnySet<'a, A> for MBwdSet<'a, A, B> {
     fn insert(&mut self, a: A) -> Option<A> { 
         let alt = &mut self.1;
         let result = self.0.insert(a.clone(), move |k, v| { alt.remove(v, k, |_, _|{}); });

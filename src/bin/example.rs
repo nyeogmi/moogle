@@ -1,6 +1,6 @@
 use moogle::*;
 
-fn main() {
+fn main1() {
     let s: OneToSet::<char, usize> = OneToSet::new();
     let fwd = s.fwd().get('a');
 
@@ -22,4 +22,25 @@ fn main() {
         s.fwd().get('a').insert(6);
     }
     println!("{:?}", s);
+}
+
+fn main() {
+    main1();
+
+    let mut table = Pom::new();
+    let m1 = table.insert("Kupdi Koop");
+    let m2 = table.insert("Pukla Puki");
+    let m3 = table.insert("Pukna Pako");
+    let m4 = table.insert("Kipli Kipp");
+    let m5 = table.insert("Puksi Piko");
+    let m6 = table.insert("Kupqu Kogi");
+    let m7 = table.insert("Kupta Kapa");
+
+    println!("Roll call! {:?}", [m1, m2, m3, m4, m5, m6, m7]);
+
+    let (index, mut elements) = table.share();
+    for m in index.keys() {
+        println!("It's {:?}: {:?}", m, elements.get(m));
+        *elements.get_mut(m4).unwrap() = "Kwilly!";
+    }
 }

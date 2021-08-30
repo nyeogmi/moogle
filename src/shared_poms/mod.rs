@@ -1,63 +1,95 @@
-use crate::Id;
+use crate::{Id, Set, RawPom};
 
-use crate::moogcell::MoogCell;
-
-use crate::raw_poms::RawPom;
-
-use crate::iterators::BTreeMapIterator;
+use crate::methods::*;
 
 pub struct Pom<T: 'static> { 
-    raw: MoogCell<RawPom<T>>,
+    // TODO: Raw set
+    index: Set<Id<T>>,
+    elements: RawPom<T>,
 }
 
 impl<T: 'static> Pom<T> {
     pub fn new() -> Self {
-        Pom { raw: MoogCell::new(RawPom::new()) }
-    }
-
-    // Note: highlight in the documentation that this is a good idea if you intend to mutate it, 
-    // since the iterable APIs aren't great
-    pub fn raw(&mut self) -> &mut RawPom<T> { self.raw.get_mut() }
-
-    pub fn insert(&self, t: T) -> Id<T> { self.raw.borrow_mut().insert(t) }
-    pub fn remove(&self, k: Id<T>) -> Option<T> { self.raw.borrow_mut().remove(k) }
-    pub fn transact(&self, k: Id<T>, f: impl FnOnce(Option<&T>)) { self.raw.borrow_mut().transact(k, f) }
-    pub fn transact_mut(&self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { self.raw.borrow_mut().transact_mut(k, f) }
-
-    // get() is &mut because people can wreak a lot of havoc with just a & and this struct
-    pub fn get(&mut self, k: Id<T>) -> Option<&T> { self.raw.get_exclusive().get(k) }
-    pub fn get_mut(&mut self, k: Id<T>) -> Option<&mut T> { self.raw.get_mut().get_mut(k) }
-    pub fn contains_key(&self, k: Id<T>) -> bool { self.raw.borrow().contains_key(k) }
-    pub fn len(&self) -> usize { self.raw.borrow().len() }
-
-    // can't neatly provide iter_mut or values_mut because they both would require a moogcell borrow
-    /*
-    pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(Id<T>, &'a T)> {
-        PomIterator {
-            iter: BTreeMapIterator::new(self.raw.create_interior_map_range())
+        Pom { 
+            index: Set::new(),
+            elements: RawPom::new(),
         }
     }
-    pub fn keys<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=Id<T>> {
-        self.iter().map(move |(k, _)| k)
+
+    pub fn insert(&mut self, t: T) -> Id<T> { 
+        let id = self.elements.insert(t);
+        self.index.fwd().insert(id);
+        id
     }
-    pub fn values<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=&'a T> {
+    pub fn remove(&mut self, k: Id<T>) -> Option<T> { 
+        self.index.fwd().remove(k);
+        self.elements.remove(k) 
+    }
+
+    pub fn share<'a>(&'a mut self) -> (Index<'a, T>, Elements<'a, T>) {
+        (Index(&self.index), Elements(&mut self.elements))
+    }
+
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item=(Id<T>, &T)> {
+        self.elements.iter()
+    }
+    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item=(Id<T>, &mut T)> {
+        self.elements.iter_mut()
+    }
+    pub fn keys(&self) -> impl '_+DoubleEndedIterator<Item=Id<T>> {
+        self.elements.keys()
+    }
+    pub fn values(&mut self) -> impl DoubleEndedIterator<Item=&T> {
         self.iter().map(move |(_, v)| v)
     }
-    */
+    pub fn values_mut(&mut self) -> impl DoubleEndedIterator<Item=&T> {
+        self.iter().map(move |(_, v)| v)
+    }
 }
 
-struct PomIterator<'a, T: 'static> {
-    iter: BTreeMapIterator<'a, RawPom<T>, Id<T>, T>,
+pub struct Index<'a, T: 'static> (&'a Set<Id<T>>);
+pub struct Elements<'a, T: 'static> (&'a mut RawPom<T>);
+
+impl<'a, T> Index<'a, T> {
+    pub fn keys(&'a self) -> impl 'a+DoubleEndedIterator<Item=Id<T>> {
+        self.0.fwd().iter()
+    }
 }
 
-/*
-impl<'a, T: 'static> Iterator for PomIterator<'a, T> {
-    type Item = (Id<T>, &'a T);
+impl<'a, T> Elements<'a, T> {
+    pub fn transact(&mut self, k: Id<T>, f: impl FnOnce(Option<&T>)) { 
+        self.0.transact(k, f) 
+    }
+    pub fn transact_mut(&mut self, k: Id<T>, f: impl FnOnce(Option<&mut T>)) { 
+        self.0.transact_mut(k, f) 
+    }
 
-    fn next(&mut self) -> std::option::Option<Self::Item> { self.iter.next(|p| &p.members) }
-}
+    pub fn get(&self, k: Id<T>) -> Option<&T> { 
+        self.0.get(k) 
+    }
+    pub fn get_mut(&mut self, k: Id<T>) -> Option<&mut T> { 
+        self.0.get_mut(k) 
+    }
+    pub fn contains_key(&self, k: Id<T>) -> bool { 
+        self.0.contains_key(k)
+    }
+    pub fn len(&self) -> usize { 
+        self.0.len() 
+    }
 
-impl <'a, T: 'static> DoubleEndedIterator for PomIterator<'a, T> {
-    fn next_back(&mut self) -> std::option::Option<Self::Item> { self.iter.next_back(|p| &p.members) }
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item=(Id<T>, &T)> {
+        self.0.iter()
+    }
+    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item=(Id<T>, &mut T)> {
+        self.0.iter_mut()
+    }
+    pub fn keys(&self) -> impl '_+DoubleEndedIterator<Item=Id<T>> {
+        self.0.keys()
+    }
+    pub fn values(&self) -> impl DoubleEndedIterator<Item=&T> { 
+        self.0.values() 
+    }
+    pub fn values_mut(&mut self) -> impl DoubleEndedIterator<Item=&mut T> { 
+        self.0.values_mut() 
+    }
 }
-*/

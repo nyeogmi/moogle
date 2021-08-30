@@ -1,6 +1,6 @@
 use std::collections::{btree_map, BTreeMap, btree_set};
 
-use crate::structures::ToSet;
+use crate::internal_structures::ToSet;
 use crate::id::IdLike;
 
 #[inline]

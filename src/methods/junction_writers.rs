@@ -2,7 +2,7 @@ use crate::id::IdLike;
 
 use super::{ViewSet, ViewAnyToOne, ViewAnyToSet};
 
-pub trait Set<'a, T: IdLike>: ViewSet<'a, T> {
+pub trait AnySet<'a, T: IdLike>: ViewSet<'a, T> {
     fn insert(&mut self, t: T) -> Option<T>;  // return the evicted item (ex. a duplicate of this item)
     fn remove(&mut self, t: T) -> Option<T>;
 } 
@@ -17,7 +17,7 @@ pub trait AnyToOne<'a, K: IdLike, V: IdLike>: ViewAnyToOne<'a, K, V> {
 }
 
 pub trait AnyToSet<'a, K: IdLike, V: IdLike>: ViewAnyToSet<'a, K, V> {
-    type MMulti: Set<'a, V>;
+    type MMulti: AnySet<'a, V>;
     type MExpunge;  // TODO: Set?
 
     fn get_mut(&'a mut self, k: K) -> Self::MMulti;

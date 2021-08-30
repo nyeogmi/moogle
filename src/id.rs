@@ -6,6 +6,11 @@ pub trait IdLike: Copy+Ord+PartialEq+'static {
     fn id_max_value() -> Self;
 }
 
+impl IdLike for () {
+    #[inline] fn id_min_value() -> Self { () }
+    #[inline] fn id_max_value() -> Self { () }
+}
+
 impl IdLike for char {
     // NOTE: This depends on the definition of unicode and could change
     #[inline] fn id_min_value() -> Self { '\u{000000}' }
@@ -74,7 +79,7 @@ impl<T> Copy for Id<T> {
 
 impl<T> std::fmt::Debug for Id<T> {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> { 
-        fmt.debug_tuple(std::any::type_name::<Id<T>>()).field(&self.0).finish()
+        fmt.debug_tuple(std::any::type_name::<T>()).field(&self.0).finish()
     }
 }
 

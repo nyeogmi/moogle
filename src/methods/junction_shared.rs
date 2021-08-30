@@ -1,6 +1,6 @@
 use crate::id::IdLike;
 
-pub trait SharedSet<'a, T: IdLike> {
+pub trait SharedAnySet<'a, T: IdLike> {
     type Iter: 'a+DoubleEndedIterator<Item=T>;
 
     fn contains(&self, k: T) -> bool;
@@ -36,7 +36,7 @@ pub trait SharedAnyToOne<'a, K: IdLike, V: IdLike> {
 }
 
 pub trait SharedAnyToSet<'a, K: IdLike, V: IdLike> {
-    type Multi: SharedSet<'a, V>;
+    type Multi: SharedAnySet<'a, V>;
     type Expunge;  // TODO: Set?
 
     type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;

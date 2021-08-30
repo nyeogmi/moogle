@@ -22,11 +22,6 @@ impl<T> MoogCell<T> {
         self.inner.borrow_mut()
     }
 
-    pub fn get_exclusive(&mut self) -> &T {
-        // don't mark dirty because we don't let you mutate anything with the ref
-        self.inner.get_mut()
-    }
-
     pub fn get_mut(&mut self) -> &mut T {
         self.mark_dirty();
         self.inner.get_mut()

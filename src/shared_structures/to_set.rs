@@ -1,22 +1,38 @@
-use super::OneToSet;
-
 use crate::id::IdLike;
+
+use crate::raw_structures::RawToSet;
+use crate::moogcell::MoogCell;
 
 use crate::methods::{SharedAnyToSet, SharedAnySet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
 use crate::methods::{ViewSet, AnySet};
 
-use crate::raw_junctions::one_to_set::RawOneToSet;
-
 use std::collections::BTreeSet;
 
 use crate::iterators::{ToSetKeysIterator, ToSetKeyValueIterator};
 
+// == Data structure ==
+pub struct ToSet<A: IdLike, B: IdLike> {
+    pub(in crate::shared_structures) raw: MoogCell<RawToSet<A, B>>
+}
+
+// == Constructor et al ==
+impl<A: IdLike, B: IdLike> ToSet<A, B> {
+    pub fn new() -> ToSet<A, B> {
+        ToSet { raw: MoogCell::new(RawToSet::new()) }
+    }
+
+    pub fn raw(&mut self) -> &mut RawToSet<A, B> { self.raw.get_mut() }
+
+    pub fn fwd(&self) -> Fwd<A, B> { Fwd { me: self } }
+}
+
+
 // == type ==
-pub struct Fwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a OneToSet<A, B> }
+pub struct Fwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_structures) me: &'a ToSet<A, B> }
 pub struct FwdSet<'a, A: IdLike, B: IdLike> { 
-    pub(in crate::shared_junctions) parent: &'a OneToSet<A, B>, 
-    pub(in crate::shared_junctions) key: A 
+    pub(in crate::shared_structures) parent: &'a ToSet<A, B>, 
+    pub(in crate::shared_structures) key: A 
 }
 
 // == main impl ==
@@ -92,7 +108,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnySet<'a, B> for FwdSet<'a, A, B> {
 
 // == iterators ==
 struct FwdIterator<'a, A: IdLike, B: IdLike> {
-    iter: ToSetKeyValueIterator<'a, RawOneToSet<A, B>, A, B>,
+    iter: ToSetKeyValueIterator<'a, RawToSet<A, B>, A, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdIterator<'a, A, B> {
@@ -110,7 +126,7 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdIterator<'a, A, B> {
 }
 
 struct FwdKeysIterator<'a, A: IdLike, B: IdLike> {
-    iter: ToSetKeysIterator<'a, RawOneToSet<A, B>, A>,
+    iter: ToSetKeysIterator<'a, RawToSet<A, B>, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdKeysIterator<'a, A, B> {
@@ -128,7 +144,7 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for FwdKeysIterator<'a, A, B
 }
 
 struct FwdSetIterator<'a, A: IdLike, B: IdLike> {
-    iter: ToSetKeyValueIterator<'a, RawOneToSet<A, B>, A, B>,
+    iter: ToSetKeyValueIterator<'a, RawToSet<A, B>, A, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdSetIterator<'a, A, B> {

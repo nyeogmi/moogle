@@ -2,9 +2,9 @@ use super::SetToSet;
 
 use crate::id::IdLike;
 
-use crate::methods::{SharedAnyToSet, SharedSet};
+use crate::methods::{SharedAnyToSet, SharedAnySet};
 use crate::methods::{ViewAnyToSet, AnyToSet};
-use crate::methods::{ViewSet, Set};
+use crate::methods::{ViewSet, AnySet};
 
 use crate::raw_junctions::set_to_set::RawSetToSet;
 
@@ -62,7 +62,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 }
 
 // == Forward (sets) ==
-impl <'a, A: IdLike, B: IdLike> SharedSet<'a, A> for BwdSet<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedAnySet<'a, A> for BwdSet<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=A>;
 
     fn contains(&self, a: A) -> bool { 

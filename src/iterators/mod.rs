@@ -1,5 +1,5 @@
 use crate::id::IdLike;
-use crate::structures::ToSet;
+use crate::internal_structures::ToSet;
 
 use std::collections::{BTreeMap, btree_set, btree_map};
 
