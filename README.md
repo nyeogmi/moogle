@@ -1,19 +1,16 @@
 # Moogle
 
-`moogle` is a collection of types for representing data relationally in Rust. The library assumes you're using a slot map implementation of some kind to assign IDs to the values in your program -- it then provides mapping types called junctions that allow you to track the relationships from IDs to each other. 
+`moogle` is a Rust library for relational programming. 
 
-`moogle` provides data structures for the four two-way relationship types used in database programming: one-to-one, one-to-many, many-to-one, and many-to-many. For each type, it provides two data structures:
+Relational programming is the underlying model used by SQL databases. In the relational model, all data is represented using global sets which support joins. 
 
-- a "raw" data structure (ex. RawOneToOne): a very thin implementation of that relationship over `BTreeMap` or `BTreeSet`
-- a "shared" data structure (ex. OneToOne): a shareable implementation of that relationship over `RefCell<BTreeMap>` or `RefCell<BTreeSet>`
+Most languages can support this model fairly well because, unlike Rust, they support concurrent writers and iterators, as long as the writers don't change the shape of the underlying data structure. 
 
-I haven't profiled the Moogle types yet, but based on their implementation (a very thin layer over `BTreeMap` or `BTreeSet`) I'd expect the raw types to be within an order of magnitude of the underlying implementation in all cases. Set operations usually require two insertions, and inserts need to be done in both directions, meaning you can expect my code to be 1/4 as fast as a simple b-tree at most.
-
-In cases with a lot of reads and few writes, I would expect the shared versions to approach `Raw` performance but not reach it.
+The point of `moogle` is to make relational code as easy to write in Rust as it is to write in Python or SQL.
 
 ## Motivation
 
-Let's say you're building a game where NPCs collect items and you want to track what items are in each NPC's inventory:
+Let's say you're building a game where NPCs collect items and you want to track what items are in each NPC's inventory. 
 
 ```rust
 let mut inventory: HashMap<NPC, Vec<Item>> = BTreeMap::new();
@@ -59,10 +56,10 @@ println!("Jochen's items: {:?}", inventory.get(jochen));
 
 This is not ideal. You can deal with this by tracking whose inventory the stick was taken from before calling `inventory.insert()`, but it would be better not to have to keep track of conservation of mass by changing your game logic.
 
-`moogle` solves this problem by tracking the answer to "who owned the stick previously?" using a data structure called a junction, then using SQL-style constraints to make sure only one person owns it:
+`moogle` solves this problem by tracking the answer to "who owned the stick previously?" then using that answer to clear out the previous owner:
 
 ```rust
-let inventory: OneToSet<NPC, Item> = OneToSet::new();
+let inventory: OneToMany<NPC, Item> = OneToMany::new();
 inventory.fwd().insert(russell, stick);
 inventory.fwd().insert(russell, beetle);
 inventory.fwd().insert(russell, pokemon_card);
@@ -84,54 +81,68 @@ println!("Jochen's items: {:?}", inventory.fwd().get(jochen));
     // => pizza, stick
 ```
 
-If you're a relational database guy, you can think of a Moogle bimap as a junction table with two columns where either column can be `UNIQUE`, and constraint violations are dealt with by deleting the older row.
+`moogle` also solves some other problems: all operations on `moogle` data structures are deterministic, and despite the fact that they support sharing, `moogle` data structures do not panic.
 
-If you're a Rust or Python guy, you can think of it as two BTrees that are kept in sync. For instance, the `OneToSet` used above is formally equivalent to a `BTreeMap<NPC, BTreeSet<Item>>` paired with a `BTreeMap<Item, NPC>`. 
+## What's in the box?
 
-(What does "kept in sync" mean? Formally, it means that for every `(NPC, Item)` stored in the first one, there's a corresponding `(Item, NPC)` in the second, and vice versa.)
+`moogle` provides eight data structures. Each one represents a different table type that you might expect to see in a relational database, and each provides natural type-safe Rust interface.
 
-`moogle` also solves several other problems:
+The fundamental data structure in `Pom`, a table type. `Pom` is a container whose only purpose is to store things -- adding something to a `Pom` assigns it an `Id` (an opaque integer value) you can use to fetch it again. These integer values satisfy the `IdLike` trait, which most other `moogle` data structures require.
 
-- the order of the items in a Moogle store is deterministic (based on `Ord`)
-- the data type of the result you get reflects whether a `UNIQUE` constraint could have existed
+In addition to that, it provides tabular representations of three familiar data structures:
 
-`moogle` also provides some shorthand for code that would like to pretend that sets inside the map are actually owned by the objects that use them. The shorthand is patterned after the Entry API for existing maps, and looks like this:
+- `ToOne` and `ToMany`: unidirectional map types analogous to `Map<K, V>` and `Map<K, Set<V>>` respectively
+- `Set`: a generic sorted set type analogous to `BTreeSet<K>`
 
-```rust
-    let inventory: OneToSet<NPC, Item> = OneToSet::new();
-    inventory.fwd().insert(russell, stick);
-    inventory.fwd().insert(russell, beetle);
-    inventory.fwd().insert(russell, pokemon_card);
-    inventory.fwd().insert(jochen, pizza);
+It provides four types implemented in terms of these, called junctions, representing relationships between entities. Each is a pair of maps kept in sync:
 
-    // shorthand: this is exactly equivalent to calling inventory.fwd().insert(jochen, stick)
-    let jochens_items = inventory.fwd().get(jochen);
-    jochens_items.insert(stick);
-```
+- `OneToOne<A, B>`: `Map<A, B>` and `Map<B, A>` 
+- `OneToMany<A, B>`: `Map<A, Set<B>>` and `Map<B, A>` 
+- `ManyToOne<A, B>`: `Map<A, B>` and `Map<B, Set<A>>`
+- `ManyToMany<A, B>`: `Map<A, Set<B>>` and `Map<B, Set<A>>`
 
-The UNIQUE constraints Moogle provides are completely optional; the SetToSet type has none, meaning that the answer to any `get()` operation is a set instead of a single result:
+Folks with relational programming background can figure out what relationship they need by thinking about the number of Bs each A depends on and the number of As each B depends on. 
 
-```rust
-    let visits: SetToSet<NPC, Place> = SetToSet::new();
-    visits.fwd().insert(marcia, paris);
-    visits.fwd().insert(marcia, rome);
-    visits.fwd().insert(gavin, rome);
-    visits.fwd().insert(gavin, london);
-    visits.fwd().insert(smith, london);
-    visits.fwd().insert(smith, venice);
+Here's an example of each relationship, as applied to vampire bats:
 
-    println!("Who visits London? {:?}", visits.bwd().get(london));
-        // => smith, gavin
-    println!("Where does Gavin visit? {:?}", visits.fwd().get(gavin));
-        // => rome, london
+- Each bat has one true name. (and no more) Each true name belongs to one bat. (and no more) (`OneToOne<Bat, TrueName>`)
+- Each bat has many secrets. Each secret belongs to one bat. (and no more) (`OneToMany<Bat, Secret>`)
+- Each bat has one cave. (and no more) Each cave belongs to many bats. (`ManyToOne<Bat, Cave>`)
+- Each bat has many victims. Each victim belongs to many bats. (`ManyToMany<Bat, Victim>`)
 
-    // modify set without using key
-    visits.fwd().get(gavin).insert(texas);
-    println!("Where does Gavin visit? {:?}", visits.fwd().get(gavin));
-        // => rome, london, texas
-```
+## What properties do Moogle data structures have?
 
-## Sharing
+`moogle` data structures are designed around sacrificing performance to provide a simpler API or achieve greater consistency. Below is a quick summary of the design decisions `moogle`:
+
+### API
+
+All `moogle` data structures support the `Set` or `Map` interface. (They are roughly API-compatible with `BTreeSet` and `BTreeMap`, with some extra boilerplate due to their symmetrical structure.)
+
+`moogle` data structures do not panic at runtime.
+
+### Determinism
+
+All `moogle` data structures are sorted. What that means is that they can be iterated in `Ord` order by calling `.iter()`. They can also be iterated in reverse order by calling `.iter().rev()`.
+
+All built-in operations on `moogle` data structures are deterministic. This is a consequence of the fact that they're in sorted order.
+
+Some advice: `moogle`'s `Pom`s sacrifice significant performance to guarantee sorted order and deterministic ID values. If you don't care about that at all, see if you can use the `slot_map` library instead: it's very fast! 
+
+### Concurrency
+
+All `moogle` data structures allow iterators and writers at the same time. For `Pom`, any operation that does not change the number of keys is allowed. For all other data structures, it's impossible to hold a dangling reference to an interior value, and therefore every operation is allowed.
+
+All `moogle` data structures come with a separate `Raw` version -- this version does not support concurrent iterators and writers, but has faster performance. For every type except `Pom`, a `.raw()` accessor exists to temporarily borrow the structure as an instance of the `Raw` type.
+
+(Unfortunately, for `Pom`, the raw representation is very different for performance reasons, and no such borrow is possible.)
+
+### Symmetry
+
+`moogle` junctions (`OneToOne`, `OneToMany`, `ManyToOne`, and `ManyToMany`) have the extra property of symmetry. 
+
+For any junction, if `j.fwd().iter()` contains `(a, b)`, then `j.bwd().iter()` contains `(b, a)` (and vice versa)
+
+## Concurrency specifics 
 
 Many programming languages allow programmers to write code that modifies a data structure at the same time as it iterates over it. Usually the defined behavior for this situation is to crash as soon as the situation is noticed.
 
@@ -148,7 +159,6 @@ Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 RuntimeError: dictionary changed size during iteration
 ```
-
 The situation is more tense in Rust, where more things are disallowed. Holding a reference to an entry inside a data structure or an iterator over that data structure prevents mutation of any part of the data structure, even if that mutation would not change the data structure's shape. That means that this benign Python program is not allowed to be written in Rust:
 
 ```python
@@ -162,21 +172,21 @@ The situation is more tense in Rust, where more things are disallowed. Holding a
 beware the ['scarf', 'ghost']
 ```
 
-(There are numerous other reasons why this program is impossible to write in Rust, most involving the type system, but the `.append()` in particular is a direct violation of the borrow made by items().)
+(There are numerous other reasons why this program is impossible to write in Rust, most involving the type system, but the `.append()` in particular is a direct violation of the borrow made by `.items()`.)
 
-In `moogle`, all of these operations are gated by `RefCell` for safety and given predictable behavior. In particular:
+In `moogle`, all of these operations are gated by `RefCell` for safety, then given predictable behavior. In particular:
 
 - If an iterator has lexicographically passed an element, then it can't observe changes to that element. Otherwise, it can.
 - The only interior data structure you're allowed to hold a pointer to is a `FwdSet`/`BwdSet`, and it sees all changes made to the underlying store as soon as they happen.
 
-This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawSetToSet` etc instead of `SetToSet` etc, which will make it impossible for it to affect you, and which will probably offer you a performance boost too. 
+This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawManyToMany` etc instead of `ManyToMany` etc, which will make it impossible for it to affect you, and which will probably offer you a performance boost too. 
 
 The implementation is pretty sane but makes use of `unsafe` in about two places. (see the `Formally` section for details) Unsafe code is fuzzed for safety.
 
 For a quick demo of the lexicographic passage rule, see the below:
 
 ```rust
-    let letters: OneToSet<Alphabet, char> = SetToOne::new();
+    let letters: OneToMany<Alphabet, char> = OneToMany::new();
     letters.fwd().insert(english, 'a');
     letters.fwd().insert(english, 'b');
     letters.fwd().insert(english, 'd');
@@ -187,7 +197,7 @@ For a quick demo of the lexicographic passage rule, see the below:
     asc.next();  // (english, 'a')
     asc.next();  // (english, 'b')
     asc.next();  // (english, 'd')
-    letters.fwd().insert(english, 'c')
+    letters.fwd().insert(english, 'c');
 
     // don't see the 'c', we already passed it
     asc.next();  // (english, 'e')
@@ -199,17 +209,19 @@ This works for reversed iterators too -- in that case, if we passed it in revers
 For a quick demo of the held set rule:
 
 ```rust
-    let possessions: SetToSet<Ghost, Item> = SetToSet::new();
+    let possessions: OneToMany<Ghost, Item> = OneToMany::new();
     let sylvian_possessions = possessions.fwd().get(sylvian);
     println!("{:?}", sylvian_possessions.get());  // nothing
-    possessions.fwd().insert(sylvian, scarf)
-    println!("{:?}", sylvian_possessions.get());  // {scarf}
+    possessions.fwd().insert(sylvian, plush)
+    println!("{:?}", sylvian_possessions.get());  // {plush}
+    sylvian_possessions.insert(fangs);
+    possessions.iter(); // {(sylvian, plush), (sylvian, fangs)}
 ```
 
 These two rules play along without surprises:
 
 ```rust
-    let letters: OneToSet<Alphabet, char> = SetToOne::new();
+    let letters: OneToMany<Alphabet, char> = ManyToOne::new();
     let english_letters = letters.fwd().get(english);
     letters.fwd().insert(english, 'a');
     letters.fwd().insert(english, 'b'):
@@ -227,42 +239,3 @@ These two rules play along without surprises:
     desc.next();  // 'a'
     desc.next();  // None
 ```
-
-
-## Formally
-
-`moogle` provides two sets of junctions -- the `raw` set and the `shared` set. 
-
-### The raw set
-
-The raw set is an internal bimap type with four public specializations. Each is equivalent to a different kind of relation.
-
-The four specializations are below:
-
-- `RawOneToOne<A, B>`: maps `Optional<A>` to `Optional<B>`
-- `RawOneToSet<A, B>`: maps `Optional<A>` to `BTreeSet<B>`
-- `RawSetToOne<A, B>`: maps `BTreeSet<A>` to `Optional<B>`
-- `RawSetToSet<A, B>`: maps `BTreeSet<A>` to `BTreeSet<B>`
-
-The underlying mapping is done using `BTreeSet<(A, B)>` (if multiple B are possible) or `BTreeMap<A, B>`. (otherwise) A BTree preserves `Ord` of elements and all operations are deterministic. Elements are expected to be bounded, `PartialEq`, `Ord` and `Copy`. (Some examples of types satisfying these requirements are numeric IDs and UUIDs.)
-
-Each specialization can be viewed in a forwards direction (using the `.fwd()` accessor) and a backwards direction (using the `.bwd()` accessor) -- for instance, `RawOneToSet<usize, char>` behaves identically to a `BTreeMap<usize, BTreeSet<char>>` and a `BTreeMap<char, usize>` that are always kept in sync. 
-
-(What does "kept in sync" mean? Formally: `insert()`ing on one automatically `insert()`s on the other such that each pair `(a, b)` in one has a corresponding pair `(b, a)` in the other.)
-
-`Set`-based junctions provide an `Entry`-like interface for insertions, as well as an iterator that averts that interface.
-
-### The shared set
-
-The shared set consists of four more types. Here's their names and their respective implementations:
-
-- OneToOne<A, B>: `MoogCell<RawOneToOne<A, B>>`
-- OneToSet<A, B>: `MoogCell<RawOneToSet<A, B>>`
-- SetToOne<A, B>: `MoogCell<RawSetToOne<A, B>>`
-- SetToSet<A, B>: `MoogCell<RawSetToSet<A, B>>`
-
-`MoogCell` is a special type implemented using `unsafe` code which allows the user to keep refs to the inside of a `RefCell` by keeping a generation counter on the `RefCell` itself. 
-
-Each time the generation counter is incremented, the refs pointing into the `MoogCell` are invalidated.
-
-(Currently this is safety-tested with QuickCheck. Future safety-testing will involve miri too.)
