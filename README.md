@@ -221,7 +221,7 @@ For a quick demo of the held set rule:
 These two rules play along without surprises:
 
 ```rust
-    let letters: OneToMany<Alphabet, char> = ManyToOne::new();
+    let letters: OneToMany<Alphabet, char> = OneToMany::new();
     let english_letters = letters.fwd().get(english);
     letters.fwd().insert(english, 'a');
     letters.fwd().insert(english, 'b'):
