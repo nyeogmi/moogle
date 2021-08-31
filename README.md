@@ -112,7 +112,7 @@ For instance, here's an example of each relationship, as applied to vampire bats
 
 ## What properties do Moogle data structures have?
 
-`moogle` data structures are designed around sacrificing performance to provide a simpler API or achieve greater consistency. Below is a quick summary of the design decisions `moogle`:
+`moogle` data structures are designed around sacrificing performance to provide a simpler API or achieve greater consistency. Below is a quick summary of the design decisions `moogle` makes:
 
 ### API
 
