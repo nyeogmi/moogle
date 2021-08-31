@@ -81,7 +81,7 @@ println!("Jochen's items: {:?}", inventory.fwd().get(jochen));
     // => pizza, stick
 ```
 
-`moogle` also solves some other problems: all operations on `moogle` data structures are deterministic, and despite the fact that they support sharing, `moogle` data structures do not panic.
+`moogle` also solves some other problems: all operations on `moogle` data structures are deterministic, and despite the fact that they support sharing, `moogle` data structures do not allow you to create conditions where a `RefCell` would panic.
 
 ## What's in the box?
 
