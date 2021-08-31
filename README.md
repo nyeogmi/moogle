@@ -176,14 +176,14 @@ beware the ['scarf', 'ghost']
 
 In `moogle`, all of these operations are gated by `RefCell` for safety, then given predictable behavior. In particular:
 
-- If an iterator has lexicographically passed an element, then it can't observe changes to that element. Otherwise, it can.
+- If an iterator has passed an element Ord-wise, then it can't observe changes to that element. Otherwise, it can.
 - The only interior data structure you're allowed to hold a pointer to is a `FwdSet`/`BwdSet`, and it sees all changes made to the underlying store as soon as they happen.
 
 This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawManyToMany` etc instead of `ManyToMany` etc, which will make it impossible for it to affect you, and which will probably offer you a performance boost too. 
 
 The implementation is pretty sane but makes use of `unsafe` in about two places. (see the `Formally` section for details) Unsafe code is fuzzed for safety.
 
-For a quick demo of the lexicographic passage rule, see the below:
+For a quick demo of the passage rule, see the below:
 
 ```rust
     let letters: OneToMany<Alphabet, char> = OneToMany::new();
