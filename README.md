@@ -101,9 +101,9 @@ It provides four types implemented in terms of these, called junctions, represen
 - `ManyToOne<A, B>`: `Map<A, B>` and `Map<B, Set<A>>`
 - `ManyToMany<A, B>`: `Map<A, Set<B>>` and `Map<B, Set<A>>`
 
-Folks with relational programming background can figure out what relationship they need by thinking about the number of Bs each A depends on and the number of As each B depends on. 
+You can figure out which relationship you need by thinking about how many items from set B each item from set A can be associated with, and vice versa in the other direction.
 
-Here's an example of each relationship, as applied to vampire bats:
+For instance, here's an example of each relationship, as applied to vampire bats:
 
 - Each bat has one true name. (and no more) Each true name belongs to one bat. (and no more) (`OneToOne<Bat, TrueName>`)
 - Each bat has many secrets. Each secret belongs to one bat. (and no more) (`OneToMany<Bat, Secret>`)
