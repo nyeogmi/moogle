@@ -118,7 +118,7 @@ For instance, here's an example of each relationship, as applied to vampire bats
 
 All `moogle` data structures support the `Set` or `Map` interface. (They are roughly API-compatible with `BTreeSet` and `BTreeMap`, with some extra boilerplate due to their symmetrical structure.)
 
-`moogle` data structures do not panic at runtime.
+`moogle` data structures do not panic.
 
 ### Determinism
 
