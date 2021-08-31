@@ -2,7 +2,7 @@
 
 `moogle` is a Rust library for relational programming. 
 
-Relational programming is the underlying model used by SQL databases. In the relational model, all data is represented using global sets which support joins. 
+Relational programming is the underlying model used by SQL databases. In the relational model, all data is represented using global sets.
 
 Most languages can support this model fairly well because, unlike Rust, they support concurrent writers and iterators, as long as the writers don't change the shape of the underlying data structure. 
 
