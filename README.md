@@ -132,7 +132,7 @@ Some advice: `moogle`'s `Pom`s sacrifice significant performance to guarantee so
 
 All `moogle` data structures allow iterators and writers at the same time. For `Pom`, any operation that does not change the number of keys is allowed. For all other data structures, it's impossible to hold a dangling reference to an interior value, and therefore every operation is allowed.
 
-All `moogle` data structures come with a separate `Raw` version -- this version does not support concurrent iterators and writers, but has faster performance. For every type except `Pom`, a `.raw()` accessor exists to temporarily borrow the structure as an instance of the `Raw` type.
+All `moogle` data structures come with a separate `Raw` version -- this version does not support concurrent iterators and writers, but has faster performance. For every type except `Pom`, a `.raw()` accessor exists to temporarily borrow the structure as an instance of the `Raw` type, which will enable you to achieve the same performance for the duration of the borrow.
 
 (Unfortunately, for `Pom`, the raw representation is very different for performance reasons, and no such borrow is possible.)
 
