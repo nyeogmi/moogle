@@ -6,9 +6,9 @@ use crate::test_props::mappy_fixture::*;
 use crate::methods::*;
 use crate::test_props::mappy_properties::{symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
 use crate::test_props::mappy_properties::{pair_unique, fwd_unique}; 
-use crate::RawSetToOne as T;
+use crate::RawManyToOne as T;
 
-impl crate::RawSetToOne<u16, i16> {
+impl crate::RawManyToOne<u16, i16> {
     fn prepare(fun: &Routine) -> Self {
         let mut set = Self::new();
         for phase in &fun.0 {

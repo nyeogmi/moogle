@@ -1,16 +1,16 @@
-use super::SetToOne;
+use super::ManyToOne;
 
 use crate::methods::SharedAnyToOne;
 use crate::methods::{ViewAnyToOne, AnyToOne};
 
-use crate::raw_junctions::set_to_one::RawSetToOne;
+use crate::raw_junctions::many_to_one::RawManyToOne;
 
 use crate::iterators::BTreeMapIterator;
 
 use crate::id::IdLike;
 
 // == type ==
-pub struct Fwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a SetToOne<A, B> }
+pub struct Fwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a ManyToOne<A, B> }
 
 impl <'a, A: IdLike, B: IdLike> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
@@ -35,7 +35,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToOne<'a, A, B> for Fwd<'a, A, B> {
 
 // == iterators ==
 struct FwdFlatIterator<'a, A: IdLike, B: IdLike> {
-    iter: BTreeMapIterator<'a, RawSetToOne<A, B>, A, B>,
+    iter: BTreeMapIterator<'a, RawManyToOne<A, B>, A, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for FwdFlatIterator<'a, A, B> {

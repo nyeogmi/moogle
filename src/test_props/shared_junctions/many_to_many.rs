@@ -4,39 +4,39 @@
 // This lets you spot-check what each bimap has
 use crate::test_props::mappy_fixture::*;
 use crate::methods::*;
-use crate::test_props::mappy_properties::fwd_correct_len;
+use crate::test_props::mappy_properties::{symmetrical, fwd_correct_len, bwd_correct_len};
 use crate::test_props::mappy_properties::pair_unique; 
-use crate::ToSet as T;
+use crate::ManyToMany as T;
 
 use crate::test_props::iterbank::{IterBank, wrap, DESIRED_N_ITERATORS};
 
-impl crate::ToSet<u16, i16> {
+impl crate::ManyToMany<u16, i16> {
     fn iterator_maker<'a>(&'a self) -> Vec<Box<dyn 'a+DoubleEndedIterator<Item=()>>> {
         vec![
-            wrap(self.fwd().keys()), 
-            wrap(self.fwd().iter()), 
-            wrap(self.fwd().sets()), 
-            wrap(self.fwd().values()), 
+            wrap(self.fwd().keys()), wrap(self.bwd().keys()),
+            wrap(self.fwd().iter()), wrap(self.bwd().iter()),
+            wrap(self.fwd().sets()), wrap(self.bwd().sets()),
+            wrap(self.fwd().values()), wrap(self.bwd().values()),
         ]
     }
     
     fn prime<'a>(&'a self, phase: &Phase, iter_bank: &mut IterBank<'a>) {
-        let (items1, items2): (Vec<u16>, Vec<u16>) = match phase {
+        let (items1, items2): (Vec<u16>, Vec<i16>) = match phase {
             Phase::Insert{fwd, bwd} => (
                 items_only(&fwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(a, _)| *a).collect(),
-                items_only(&bwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(_, a)| *a).collect(),
+                items_only(&bwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(b, _)| *b).collect(),
             ),
             Phase::Remove{fwd, bwd} => (
                 items_only(&fwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(a, _)| *a).collect(),
-                items_only(&bwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(_, a)| *a).collect(),
+                items_only(&bwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(b, _)| *b).collect(),
             ),
-            Phase::Expunge{fwd, ..} => (
-                items_only(&fwd).into_iter().take(DESIRED_N_ITERATORS).collect(),
-                vec![],
+            Phase::Expunge{fwd, bwd} => (
+                items_only(&fwd).into_iter().take(DESIRED_N_ITERATORS / 2).collect(),
+                items_only(&bwd).into_iter().take(DESIRED_N_ITERATORS / 2).collect(),
             )
         };
         for i in items1 { iter_bank.add_iterator(self.fwd().get(i).iter()) }
-        for i in items2 { iter_bank.add_iterator(self.fwd().get(i).iter()) }
+        for i in items2 { iter_bank.add_iterator(self.bwd().get(i).iter()) }
     }
 
     fn prepare(fun: &Routine) -> Self {
@@ -50,14 +50,15 @@ impl crate::ToSet<u16, i16> {
             match phase {
                 Phase::Insert{fwd, bwd} => {
                     items_or_work(fwd, |(a, b)| { set.fwd().insert(a, b); }, |w| iter_bank.do_work(w));
-                    items_or_work(bwd, |(b, a)| { set.fwd().insert(a, b); }, |w| iter_bank.do_work(w));
+                    items_or_work(bwd, |(b, a)| { set.bwd().insert(b, a); }, |w| iter_bank.do_work(w));
                 },
                 Phase::Remove{fwd, bwd} => {
                     items_or_work(fwd, |(a, b)| { set.fwd().remove(a, b); }, |w| iter_bank.do_work(w));
-                    items_or_work(bwd, |(b, a)| { set.fwd().remove(a, b); }, |w| iter_bank.do_work(w));
+                    items_or_work(bwd, |(b, a)| { set.bwd().remove(b, a); }, |w| iter_bank.do_work(w));
                 },
-                Phase::Expunge{fwd, ..} => {
+                Phase::Expunge{fwd, bwd} => {
                     items_or_work(fwd, |a| { set.fwd().expunge(a); }, |w| iter_bank.do_work(w));
+                    items_or_work(bwd, |b| { set.bwd().expunge(b); }, |w| iter_bank.do_work(w));
                 }
             }
         }
@@ -71,6 +72,18 @@ impl crate::ToSet<u16, i16> {
 fn test_fwd_correct_len(f: Routine) -> bool {
     let xs = T::prepare(&f);
     fwd_correct_len(xs.fwd().iter().collect(), xs.fwd().len())
+}
+
+#[quickcheck]
+fn test_bwd_correct_len(f: Routine) -> bool {
+    let xs = T::prepare(&f);
+    bwd_correct_len(xs.bwd().iter().collect(), xs.bwd().len())
+}
+
+#[quickcheck]
+fn test_symmetrical(f: Routine) -> bool {
+    let xs = T::prepare(&f);
+    symmetrical(xs.fwd().iter().collect(), xs.bwd().iter().collect())
 }
 
 #[quickcheck]

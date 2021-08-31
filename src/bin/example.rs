@@ -1,7 +1,7 @@
 use moogle::*;
 
 fn main1() {
-    let s: OneToSet::<char, usize> = OneToSet::new();
+    let s: OneToMany::<char, usize> = OneToMany::new();
     let fwd = s.fwd().get('a');
 
     fwd.insert(4);

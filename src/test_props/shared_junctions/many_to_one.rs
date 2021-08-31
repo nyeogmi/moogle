@@ -5,38 +5,31 @@
 use crate::test_props::mappy_fixture::*;
 use crate::methods::*;
 use crate::test_props::mappy_properties::{symmetrical, fwd_correct_len, bwd_correct_len};
-use crate::test_props::mappy_properties::pair_unique; 
-use crate::SetToSet as T;
+use crate::test_props::mappy_properties::{pair_unique, fwd_unique}; 
+use crate::ManyToOne as T;
 
 use crate::test_props::iterbank::{IterBank, wrap, DESIRED_N_ITERATORS};
 
-impl crate::SetToSet<u16, i16> {
+impl crate::ManyToOne<u16, i16> {
     fn iterator_maker<'a>(&'a self) -> Vec<Box<dyn 'a+DoubleEndedIterator<Item=()>>> {
         vec![
             wrap(self.fwd().keys()), wrap(self.bwd().keys()),
             wrap(self.fwd().iter()), wrap(self.bwd().iter()),
-            wrap(self.fwd().sets()), wrap(self.bwd().sets()),
+            wrap(self.bwd().sets()),
             wrap(self.fwd().values()), wrap(self.bwd().values()),
         ]
     }
     
     fn prime<'a>(&'a self, phase: &Phase, iter_bank: &mut IterBank<'a>) {
-        let (items1, items2): (Vec<u16>, Vec<i16>) = match phase {
-            Phase::Insert{fwd, bwd} => (
-                items_only(&fwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(a, _)| *a).collect(),
-                items_only(&bwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(b, _)| *b).collect(),
-            ),
-            Phase::Remove{fwd, bwd} => (
-                items_only(&fwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(a, _)| *a).collect(),
-                items_only(&bwd).iter().take(DESIRED_N_ITERATORS / 2).map(|(b, _)| *b).collect(),
-            ),
-            Phase::Expunge{fwd, bwd} => (
-                items_only(&fwd).into_iter().take(DESIRED_N_ITERATORS / 2).collect(),
-                items_only(&bwd).into_iter().take(DESIRED_N_ITERATORS / 2).collect(),
-            )
+        let items: Vec<i16> = match phase {
+            Phase::Insert{bwd, ..} => 
+                items_only(&bwd).iter().take(DESIRED_N_ITERATORS).map(|(b, _)| *b).collect(),
+            Phase::Remove{bwd, ..} => 
+                items_only(&bwd).iter().take(DESIRED_N_ITERATORS).map(|(b, _)| *b).collect(),
+            Phase::Expunge{bwd, ..} =>
+                items_only(&bwd).into_iter().take(DESIRED_N_ITERATORS).collect(),
         };
-        for i in items1 { iter_bank.add_iterator(self.fwd().get(i).iter()) }
-        for i in items2 { iter_bank.add_iterator(self.bwd().get(i).iter()) }
+        for i in items { iter_bank.add_iterator(self.bwd().get(i).iter()) }
     }
 
     fn prepare(fun: &Routine) -> Self {
@@ -90,4 +83,10 @@ fn test_symmetrical(f: Routine) -> bool {
 fn test_pair_unique(f: Routine) -> bool {
     let xs = T::prepare(&f);
     pair_unique(xs.fwd().iter().collect())
+}
+
+#[quickcheck]
+fn test_fwd_unique(f: Routine) -> bool {
+    let xs = T::prepare(&f);
+    fwd_unique(xs.fwd().iter().collect())
 }

@@ -1,26 +1,26 @@
-use super::SetToSet;
+use super::ManyToMany;
 
 use crate::id::IdLike;
 
-use crate::methods::{SharedAnyToSet, SharedAnySet};
-use crate::methods::{ViewAnyToSet, AnyToSet};
+use crate::methods::{SharedAnyToMany, SharedAnySet};
+use crate::methods::{ViewAnyToMany, AnyToMany};
 use crate::methods::{ViewSet, AnySet};
 
-use crate::raw_junctions::set_to_set::RawSetToSet;
+use crate::raw_junctions::many_to_many::RawManyToMany;
 
 use std::collections::BTreeSet;
 
-use crate::iterators::{ToSetKeysIterator, ToSetKeyValueIterator};
+use crate::iterators::{ToManyKeysIterator, ToManyKeyValueIterator};
 
 // == type ==
-pub struct Bwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a SetToSet<A, B> }
+pub struct Bwd<'a, A: IdLike, B: IdLike> { pub(in crate::shared_junctions) me: &'a ManyToMany<A, B> }
 pub struct BwdSet<'a, A: IdLike, B: IdLike> { 
-    pub(in crate::shared_junctions) parent: &'a SetToSet<A, B>, 
+    pub(in crate::shared_junctions) parent: &'a ManyToMany<A, B>, 
     pub(in crate::shared_junctions) key: B 
 }
 
 // == main impl ==
-impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
+impl <'a, A: IdLike, B: IdLike> SharedAnyToMany<'a, B, A> for Bwd<'a, A, B> {
     type Multi = BwdSet<'a, A, B>;
     type Expunge = BTreeSet<A>;  
 
@@ -40,7 +40,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         BwdIterator::<'a, A, B> {
-            iter: ToSetKeyValueIterator::new(
+            iter: ToManyKeyValueIterator::new(
                 self.me.raw.create_interior_set_range(),
                 None, None
             )
@@ -48,7 +48,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnyToSet<'a, B, A> for Bwd<'a, A, B> {
     }
     fn keys(&self) -> Self::Keys {
         BwdKeysIterator::<'a, A, B> { 
-            iter: ToSetKeysIterator::new(self.me.raw.create_interior_map_range())
+            iter: ToManyKeysIterator::new(self.me.raw.create_interior_map_range())
         }
     }
     fn sets(&self) -> Self::Sets { 
@@ -78,7 +78,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnySet<'a, A> for BwdSet<'a, A, B> {
 
     fn iter(&self) -> Self::Iter {
         BwdSetIterator {
-            iter: ToSetKeyValueIterator::new(
+            iter: ToManyKeyValueIterator::new(
                 self.parent.raw.create_interior_set_range(),
                 Some((self.key, A::id_min_value())), 
                 Some((self.key, A::id_max_value())),
@@ -92,7 +92,7 @@ impl <'a, A: IdLike, B: IdLike> SharedAnySet<'a, A> for BwdSet<'a, A, B> {
 
 // == iterators ==
 struct BwdIterator<'a, A: IdLike, B: IdLike> {
-    iter: ToSetKeyValueIterator<'a, RawSetToSet<A, B>, B, A>,
+    iter: ToManyKeyValueIterator<'a, RawManyToMany<A, B>, B, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for BwdIterator<'a, A, B> {
@@ -110,7 +110,7 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdIterator<'a, A, B> {
 }
 
 struct BwdKeysIterator<'a, A: IdLike, B: IdLike> {
-    iter: ToSetKeysIterator<'a, RawSetToSet<A, B>, B>,
+    iter: ToManyKeysIterator<'a, RawManyToMany<A, B>, B>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for BwdKeysIterator<'a, A, B> {
@@ -128,7 +128,7 @@ impl <'a, A: IdLike, B: IdLike> DoubleEndedIterator for BwdKeysIterator<'a, A, B
 }
 
 struct BwdSetIterator<'a, A: IdLike, B: IdLike> {
-    iter: ToSetKeyValueIterator<'a, RawSetToSet<A, B>, B, A>,
+    iter: ToManyKeyValueIterator<'a, RawManyToMany<A, B>, B, A>,
 }
 
 impl<'a, A: IdLike, B: IdLike> Iterator for BwdSetIterator<'a, A, B> {

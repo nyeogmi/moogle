@@ -1,42 +1,42 @@
 use crate::id::IdLike;
 
-use crate::methods::{ViewAnyToSet, AnyToSet, ViewAnyToOne, AnyToOne};
+use crate::methods::{ViewAnyToMany, AnyToMany, ViewAnyToOne, AnyToOne};
 use crate::methods::{ViewSet, AnySet, EvictSet};
 
 use crate::internal_structures::{ToOne};
-use crate::internal_structures::{ToSet, VSet, MSet};
+use crate::internal_structures::{ToMany, VSet, MSet};
 
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct RawSetToOne<A: IdLike, B: IdLike> {
+pub struct RawManyToOne<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToOne<A, B>,
-    pub(crate) bwd: ToSet<B, A>,
+    pub(crate) bwd: ToMany<B, A>,
 }
 
 // == Constructor et al ==
-impl<A: IdLike, B: IdLike> RawSetToOne<A, B> {
-    pub fn new() -> RawSetToOne<A, B> {
-        RawSetToOne { fwd: ToOne::new(), bwd: ToSet::new() }
+impl<A: IdLike, B: IdLike> RawManyToOne<A, B> {
+    pub fn new() -> RawManyToOne<A, B> {
+        RawManyToOne { fwd: ToOne::new(), bwd: ToMany::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawSetToOne<A, B>);
-pub struct MBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawSetToOne<A, B>);
+pub struct MFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawManyToOne<A, B>);
+pub struct MBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawManyToOne<A, B>);
 pub struct MBwdSet<'a, A: IdLike, B: IdLike>(pub(crate) MSet<'a, B, A>, &'a mut ToOne<A, B>);
 
-pub struct VFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawSetToOne<A, B>);
-pub struct VBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawSetToOne<A, B>);
+pub struct VFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawManyToOne<A, B>);
+pub struct VBwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawManyToOne<A, B>);
 pub struct VBwdSet<'a, A: IdLike, B: IdLike>(pub(crate) VSet<'a, B, A>);
 
 // == Accessors ==
-impl<A: IdLike, B: IdLike> RawSetToOne<A, B> {
+impl<A: IdLike, B: IdLike> RawManyToOne<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn bwd(&self) -> VBwd<A, B> { VBwd(self) }
 } 
 
-impl<A: IdLike, B: IdLike> RawSetToOne<A, B> {
+impl<A: IdLike, B: IdLike> RawManyToOne<A, B> {
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
     pub fn mut_bwd(&mut self) -> MBwd<A, B> { MBwd(self) }
 } 
@@ -88,7 +88,7 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToOne<'a, A, B> for VFwd<'a, A, B> {
 }
 
 // == Backward ==
-impl<'a, A: IdLike, B: IdLike> AnyToSet<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnyToMany<'a, B, A> for MBwd<'a, A, B> {
     type MMulti = MBwdSet<'a, A, B>;
     type MExpunge = BTreeSet<A>;
 
@@ -111,7 +111,7 @@ impl<'a, A: IdLike, B: IdLike> AnyToSet<'a, B, A> for MBwd<'a, A, B> {
     }
 }
 
-impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, B, A> for MBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToMany<'a, B, A> for MBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;
@@ -131,7 +131,7 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, B, A> for MBwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
-impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, B, A> for VBwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToMany<'a, B, A> for VBwd<'a, A, B> {
     type VMulti = VBwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(B, A)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=B>;

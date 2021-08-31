@@ -3,14 +3,14 @@ use std::fmt;
 
 use crate::IdLike;
 
-use crate::internal_structures::{ToOne, ToSet};
+use crate::internal_structures::{ToOne, ToMany};
 use crate::methods::ViewSet;
 
 fn to_one<A: Debug+IdLike, B: Debug+IdLike>(f: &mut Formatter<'_>, t: &ToOne<A, B>) -> fmt::Result {
     f.debug_map().entries(t.iter()).finish()
 }
 
-fn to_set<A: Debug+IdLike, B: Debug+IdLike>(f: &mut Formatter<'_>, t: &ToSet<A, B>) -> fmt::Result {
+fn to_many<A: Debug+IdLike, B: Debug+IdLike>(f: &mut Formatter<'_>, t: &ToMany<A, B>) -> fmt::Result {
     f.debug_map().entries(t.sets()).finish()
 }
 
@@ -51,22 +51,22 @@ impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_one::VFwd<'a, A, 
 }
 
 // == to-set ==
-impl<A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_set::RawToSet<A, B> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { to_set(f, &self.fwd) }
+impl<A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_many::RawToMany<A, B> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { to_many(f, &self.fwd) }
 }
 
-impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_set::MFwd<'a, A, B> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { to_set(f, &self.0.fwd) }
+impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_many::MFwd<'a, A, B> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { to_many(f, &self.0.fwd) }
 }
 
-impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_set::VFwd<'a, A, B> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { to_set(f, &self.0.fwd) }
+impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_many::VFwd<'a, A, B> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { to_many(f, &self.0.fwd) }
 }
 
-impl<'a, A: IdLike, B: Debug+IdLike> Debug for super::to_set::MFwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: Debug+IdLike> Debug for super::to_many::MFwdSet<'a, A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { set(f, self) }
 }
 
-impl<'a, A: IdLike, B: Debug+IdLike> Debug for super::to_set::VFwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: Debug+IdLike> Debug for super::to_many::VFwdSet<'a, A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { set(f, self) }
 }

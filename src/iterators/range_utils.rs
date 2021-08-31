@@ -1,12 +1,12 @@
 use std::collections::{btree_map, BTreeMap, btree_set};
 
-use crate::internal_structures::{ToSet, ToSetMetadata};
+use crate::internal_structures::{ToMany, ToManyMetadata};
 use crate::id::IdLike;
 
 #[inline]
-pub(crate) fn make_toset_key_range<K: IdLike, V: IdLike>(
-    vs: &ToSet<K, V>, front_cursor: Option<K>, back_cursor: Option<K>,
-) -> btree_map::Range<'_, K, ToSetMetadata> {
+pub(crate) fn make_to_many_key_range<K: IdLike, V: IdLike>(
+    vs: &ToMany<K, V>, front_cursor: Option<K>, back_cursor: Option<K>,
+) -> btree_map::Range<'_, K, ToManyMetadata> {
     match (front_cursor, back_cursor) {
         (Some(f), Some(b)) => {
             let mut l = vs.key_subrange(f..=b);
@@ -29,8 +29,8 @@ pub(crate) fn make_toset_key_range<K: IdLike, V: IdLike>(
 }
 
 #[inline]
-pub(crate) fn make_toset_key_value_range<K: IdLike, V: IdLike>(
-    vs: &ToSet<K, V>, 
+pub(crate) fn make_to_many_key_value_range<K: IdLike, V: IdLike>(
+    vs: &ToMany<K, V>, 
     front_cursor: Option<(K, V)>, back_cursor: Option<(K, V)>,
 
     // nyeo note: these are like cursors but don't need to be advanced past

@@ -1,39 +1,39 @@
 use crate::id::IdLike;
 
-use crate::methods::{ViewAnyToSet, AnyToSet};
+use crate::methods::{ViewAnyToMany, AnyToMany};
 use crate::methods::{ViewSet, AnySet, EvictSet};
 
-use crate::internal_structures::{ToSet, VSet, MSet};
+use crate::internal_structures::{ToMany, VSet, MSet};
 
 use std::collections::BTreeSet;
 
 // == Data structure ==
-pub struct RawToSet<A: IdLike, B: IdLike> {
-    pub(crate) fwd: ToSet<A, B>,
+pub struct RawToMany<A: IdLike, B: IdLike> {
+    pub(crate) fwd: ToMany<A, B>,
 }
 
 // == Constructor et al ==
-impl<A: IdLike, B: IdLike> RawToSet<A, B> {
-    pub fn new() -> RawToSet<A, B> {
-        RawToSet { fwd: ToSet::new() }
+impl<A: IdLike, B: IdLike> RawToMany<A, B> {
+    pub fn new() -> RawToMany<A, B> {
+        RawToMany { fwd: ToMany::new() }
     }
 }
 
 // == More structs ==
-pub struct MFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawToSet<A, B>);
+pub struct MFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a mut RawToMany<A, B>);
 pub struct MFwdSet<'a, A: IdLike, B: IdLike>(pub(crate) MSet<'a, A, B>);
 
-pub struct VFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawToSet<A, B>);
+pub struct VFwd<'a, A: IdLike, B: IdLike>(pub(crate) &'a RawToMany<A, B>);
 pub struct VFwdSet<'a, A: IdLike, B: IdLike>(pub(crate) VSet<'a, A, B>);
 
 // == Accessors ==
-impl<A: IdLike, B: IdLike> RawToSet<A, B> {
+impl<A: IdLike, B: IdLike> RawToMany<A, B> {
     pub fn fwd(&self) -> VFwd<A, B> { VFwd(self) }
     pub fn mut_fwd(&mut self) -> MFwd<A, B> { MFwd(self) }
 } 
 
 // == Forward ==
-impl<'a, A: IdLike, B: IdLike> AnyToSet<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> AnyToMany<'a, A, B> for MFwd<'a, A, B> {
     type MMulti = MFwdSet<'a, A, B>;
     type MExpunge = BTreeSet<B>;
 
@@ -50,7 +50,7 @@ impl<'a, A: IdLike, B: IdLike> AnyToSet<'a, A, B> for MFwd<'a, A, B> {
     }
 }
 
-impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToMany<'a, A, B> for MFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=A>;
@@ -70,7 +70,7 @@ impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for MFwd<'a, A, B> {
     fn values(&'a self) -> Self::Values { self.iter().map(|(_, v)| v) }
 }
 
-impl<'a, A: IdLike, B: IdLike> ViewAnyToSet<'a, A, B> for VFwd<'a, A, B> {
+impl<'a, A: IdLike, B: IdLike> ViewAnyToMany<'a, A, B> for VFwd<'a, A, B> {
     type VMulti = VFwdSet<'a, A, B>;
     type Iter = impl 'a+DoubleEndedIterator<Item=(A, B)>;
     type Keys = impl 'a+DoubleEndedIterator<Item=A>;

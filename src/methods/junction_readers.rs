@@ -25,7 +25,7 @@ pub trait ViewAnyToOne<'a, K: IdLike, V: IdLike> {
     fn values(&'a self) -> Self::Values;
 }
 
-pub trait ViewAnyToSet<'a, K: IdLike, V: IdLike> {
+pub trait ViewAnyToMany<'a, K: IdLike, V: IdLike> {
     type VMulti: ViewSet<'a, V>;
 
     type Iter: 'a+DoubleEndedIterator<Item=(K, V)>;

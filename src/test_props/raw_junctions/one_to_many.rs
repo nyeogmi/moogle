@@ -5,10 +5,10 @@
 use crate::test_props::mappy_fixture::*;
 use crate::methods::*;
 use crate::test_props::mappy_properties::{symmetrical, fwd_equal, fwd_correct_len, bwd_equal, bwd_correct_len};
-use crate::test_props::mappy_properties::pair_unique; 
-use crate::RawSetToSet as T;
+use crate::test_props::mappy_properties::{pair_unique, bwd_unique}; 
+use crate::RawOneToMany as T;
 
-impl crate::RawSetToSet<u16, i16> {
+impl crate::RawOneToMany<u16, i16> {
     fn prepare(fun: &Routine) -> Self {
         let mut set = Self::new();
         for phase in &fun.0 {
@@ -30,6 +30,7 @@ impl crate::RawSetToSet<u16, i16> {
         set
     }
 }
+
 
 #[quickcheck]
 fn test_fwd_equal(f: Routine) -> bool {
@@ -65,4 +66,10 @@ fn test_symmetrical(f: Routine) -> bool {
 fn test_pair_unique(f: Routine) -> bool {
     let xs = T::prepare(&f);
     pair_unique(xs.fwd().iter().collect())
+}
+
+#[quickcheck]
+fn test_bwd_unique(f: Routine) -> bool {
+    let xs = T::prepare(&f);
+    bwd_unique(xs.bwd().iter().collect())
 }

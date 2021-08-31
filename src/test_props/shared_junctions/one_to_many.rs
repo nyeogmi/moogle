@@ -6,11 +6,11 @@ use crate::test_props::mappy_fixture::*;
 use crate::methods::*;
 use crate::test_props::mappy_properties::{symmetrical, fwd_correct_len, bwd_correct_len};
 use crate::test_props::mappy_properties::{pair_unique, bwd_unique}; 
-use crate::OneToSet as T;
+use crate::OneToMany as T;
 
 use crate::test_props::iterbank::{IterBank, wrap, DESIRED_N_ITERATORS};
 
-impl crate::OneToSet<u16, i16> {
+impl crate::OneToMany<u16, i16> {
     fn iterator_maker<'a>(&'a self) -> Vec<Box<dyn 'a+DoubleEndedIterator<Item=()>>> {
         vec![
             wrap(self.fwd().keys()), wrap(self.bwd().keys()),

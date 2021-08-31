@@ -35,7 +35,7 @@ pub trait SharedAnyToOne<'a, K: IdLike, V: IdLike> {
     }
 }
 
-pub trait SharedAnyToSet<'a, K: IdLike, V: IdLike> {
+pub trait SharedAnyToMany<'a, K: IdLike, V: IdLike> {
     type Multi: SharedAnySet<'a, V>;
     type Expunge;  // TODO: Set?
 

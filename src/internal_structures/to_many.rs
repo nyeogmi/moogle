@@ -7,7 +7,7 @@ use std::collections::btree_set;
 use std::collections::btree_map;
 use std::ops::RangeBounds;
 
-pub(crate) struct ToSet<K, V> {
+pub(crate) struct ToMany<K, V> {
     keys: BTreeMap<K, Metadata>,
     elements: BTreeSet<(K, V)>,
 }
@@ -17,7 +17,7 @@ pub(crate) struct Metadata {
 }
 
 
-impl<K: IdLike, V: IdLike> ToSet<K, V> {
+impl<K: IdLike, V: IdLike> ToMany<K, V> {
     pub fn iter<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=(K, V)> { 
         self.elements.iter().map(|(k, v)| (*k, *v))
     }
@@ -31,8 +31,8 @@ impl<K: IdLike, V: IdLike> ToSet<K, V> {
     }
 }
 
-impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
-    pub fn new() -> Self { ToSet { 
+impl<'a, K: IdLike, V: IdLike> ToMany<K, V> {
+    pub fn new() -> Self { ToMany { 
         keys: BTreeMap::new(),
         elements: BTreeSet::new(), 
     } }
@@ -114,12 +114,12 @@ impl<'a, K: IdLike, V: IdLike> ToSet<K, V> {
 #[derive(Clone, Copy)]
 pub(crate) struct VSet<'a, K: IdLike, V: IdLike> {
     key: K,
-    map: &'a ToSet<K, V>,
+    map: &'a ToMany<K, V>,
 }
 
 pub(crate) struct MSet<'a, K: IdLike, V: IdLike> {
     key: K, 
-    map: &'a mut ToSet<K, V>
+    map: &'a mut ToMany<K, V>
 }
 
 impl<'a, K: IdLike, V: IdLike> MSet<'a, K, V> {

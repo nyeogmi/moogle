@@ -1,12 +1,12 @@
 mod debug_impl;
 
 pub mod one_to_one;
-pub mod one_to_set;
-pub mod set_to_one;
-pub mod set_to_set;
+pub mod one_to_many;
+pub mod many_to_one;
+pub mod many_to_many;
 
 // pub use ...
 pub use one_to_one::OneToOne;
-pub use one_to_set::OneToSet;
-pub use set_to_one::SetToOne;
-pub use set_to_set::SetToSet;
+pub use one_to_many::OneToMany;
+pub use many_to_one::ManyToOne;
+pub use many_to_many::ManyToMany;

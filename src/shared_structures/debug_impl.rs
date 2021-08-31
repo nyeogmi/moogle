@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 
-use crate::methods::ViewAnyToSet;
+use crate::methods::ViewAnyToMany;
 
 use crate::IdLike;
 
@@ -24,15 +24,15 @@ impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_one::Fwd<'a, A, B
 }
 
 // == to-set ==
-impl<A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_set::ToSet<A, B> {
+impl<A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_many::ToMany<A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { self.raw.borrow().fmt(f) }
 }
 
-impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_set::Fwd<'a, A, B> {
+impl<'a, A: Debug+IdLike, B: Debug+IdLike> Debug for super::to_many::Fwd<'a, A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { self.me.raw.borrow().fmt(f) }
 }
 
-impl<'a, A: IdLike, B: Debug+IdLike> Debug for super::to_set::FwdSet<'a, A, B> {
+impl<'a, A: IdLike, B: Debug+IdLike> Debug for super::to_many::FwdSet<'a, A, B> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { 
         let owner = self.parent.raw.borrow();
         owner.fwd().get(self.key).fmt(f) 
