@@ -24,7 +24,7 @@ Big:
 Speculative:
 
 - Allow multiple junctions to share a database and allow Prolog-like querying across that database.
-- Add ToVecs, which behave like ToSets except:
+- Add ToVecs, which behave like ToManys except:
   - tracks and evicts based on insertion order
   - duplicate items are allowed
   - can be capped
