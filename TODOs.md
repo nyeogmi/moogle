@@ -13,13 +13,16 @@ Medium:
 
 - Don't allocate in the ToMany impl of Serde
 - Support miri
+- Integration testing
 - IntoIterator for &T for all builtin `.iter()`-providing Ts.
 - Add `arr[x]` syntax for all builtin junctions.
 - The other traits et cetera from BTreeMap and BTreeSet
 
 Big:
 
+- Write some real examples
 - More thorough unit testing
+- Automatic benchmarking
 - Document everything
 
 Speculative:
