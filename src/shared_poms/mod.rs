@@ -4,6 +4,9 @@ use crate::methods::*;
 
 mod debug_impl;
 
+#[cfg(feature="serde1")]
+mod serde_impl;
+
 pub struct Pom<T: 'static> { 
     index: Set<Id<T>>,
     elements: RawPom<T>,
@@ -15,6 +18,12 @@ impl<T: 'static> Pom<T> {
             index: Set::new(),
             elements: RawPom::new(),
         }
+    }
+
+    pub(crate) fn from_raw(elements: RawPom<T>) -> Self {
+        let index = Set::new();
+        for k in elements.keys() { index.fwd().insert(k); }
+        Pom { index, elements }
     }
 
     pub fn insert(&mut self, t: T) -> Id<T> { 

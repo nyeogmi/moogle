@@ -22,6 +22,7 @@ fn main1() {
         s.fwd().get('a').insert(6);
     }
     println!("{:?}", s);
+    println!("The table: {}", serde_json::to_string(&s).unwrap())
 }
 
 fn main() {
@@ -46,4 +47,6 @@ fn main() {
         println!("It's {:?}: {:?}", m, elements.get(m));
         *elements.get_mut(m4).unwrap() = "Kwilly!";
     }
+
+    println!("The table: {}", serde_json::to_string_pretty(&table).unwrap())
 }

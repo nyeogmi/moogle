@@ -1,6 +1,6 @@
 [package]
 name = "moogle"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Nyeogmi <economicsbat@gmail.com>"]
 description = "data structures for relational code"
 readme = "README.md"
@@ -11,10 +11,17 @@ keywords = ["gamedev", "database"]
 categories = ["database-implementations", "data-structures", "game-development", "memory-management"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+serde1 = ["serde"]  # this is real weird!!! but it's what `rand` uses
 
 [dependencies]
+serde = {version = "1.0", optional = true, features=["derive"]}
 
 [dev-dependencies]
 quickcheck = "1"
 quickcheck_macros = "1"
+serde_json = "1.0" # for demoing serde support
+
+[[example]]
+name = "example"
+required-features = ["serde1"]

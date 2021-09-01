@@ -109,3 +109,26 @@ impl<T: 'static> IdLike for Id<T> {
     #[inline] fn id_min_value() -> Self { Id(u64::min_value(), PhantomData) }
     #[inline] fn id_max_value() -> Self { Id(u64::max_value(), PhantomData) }
 }
+
+#[cfg(feature="serde1")]
+mod serde_impl {
+    use std::marker::PhantomData;
+
+    use super::Id;
+    use serde::{Serialize, Deserialize};
+
+    impl<T> Serialize for Id<T> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer {
+            self.0.serialize(serializer)
+        }
+    }
+
+    impl<'de, T> Deserialize<'de> for Id<T> {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: serde::Deserializer<'de> {
+            let u: u64 = u64::deserialize(deserializer)?;
+            Ok(Id(u, PhantomData))
+        }
+    }
+}

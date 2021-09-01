@@ -73,7 +73,7 @@ println!("Jochen's items: {:?}", inventory.fwd().get(russell));
 println!("Who owns the stick? {:?}", inventory.bwd().get(stick));
     // => russell
 
-inventory.mut_fwd().insert(jochen, stick);
+inventory.fwd().insert(jochen, stick);
 
 println!("Russell's items: {:?}", inventory.fwd().get(russell)); 
     // => beetle, pokemon_card

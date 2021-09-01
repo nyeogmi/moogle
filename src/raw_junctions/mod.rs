@@ -9,3 +9,6 @@ pub use one_to_one::RawOneToOne;
 pub use one_to_many::RawOneToMany;
 pub use many_to_one::RawManyToOne;
 pub use many_to_many::RawManyToMany;
+
+#[cfg(feature="serde1")]
+mod serde_impl;

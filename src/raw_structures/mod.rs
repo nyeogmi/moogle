@@ -10,3 +10,6 @@ pub mod to_many;
 pub use set::RawSet;
 pub use to_one::RawToOne;
 pub use to_many::RawToMany;
+
+#[cfg(feature="serde1")]
+mod serde_impl;

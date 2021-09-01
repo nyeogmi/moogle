@@ -11,6 +11,7 @@ Small:
 
 Medium:
 
+- Don't allocate in the ToMany impl of Serde
 - Support miri
 - IntoIterator for &T for all builtin `.iter()`-providing Ts.
 - Add `arr[x]` syntax for all builtin junctions.

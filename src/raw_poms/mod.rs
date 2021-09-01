@@ -4,6 +4,9 @@ use std::collections::BTreeMap;
 
 mod debug_impl;
 
+#[cfg(feature="serde1")]
+mod serde_impl;
+
 pub struct RawPom<T> { 
     next_id: u64,
     pub(crate) members: BTreeMap<Id<T>, T>
@@ -15,6 +18,10 @@ impl<T> RawPom<T> {
             next_id: 1,
             members: BTreeMap::new(),
         }
+    }
+
+    pub(crate) fn from_raw_parts(next_id: u64, members: BTreeMap<Id<T>, T>) -> RawPom<T> {
+        RawPom { next_id, members }
     }
 
     pub fn insert(&mut self, t: T) -> Id<T> {
