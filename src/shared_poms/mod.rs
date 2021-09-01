@@ -20,6 +20,7 @@ impl<T: 'static> Pom<T> {
         }
     }
 
+    #[cfg(feature="serde1")]  // only needs to exist for serde
     pub(crate) fn from_raw(elements: RawPom<T>) -> Self {
         let index = Set::new();
         for k in elements.keys() { index.fwd().insert(k); }

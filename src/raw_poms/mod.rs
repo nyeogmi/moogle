@@ -20,6 +20,7 @@ impl<T> RawPom<T> {
         }
     }
 
+    #[cfg(feature="serde1")]  // only needs to exist for serde
     pub(crate) fn from_raw_parts(next_id: u64, members: BTreeMap<Id<T>, T>) -> RawPom<T> {
         RawPom { next_id, members }
     }
