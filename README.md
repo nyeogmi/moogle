@@ -67,7 +67,7 @@ inventory.fwd().insert(jochen, pizza);
 
 println!("Russell's items: {:?}", inventory.fwd().get(russell)); 
     // => stick, beetle, pokemon_card
-println!("Jochen's items: {:?}", inventory.fwd().get(russell));  
+println!("Jochen's items: {:?}", inventory.fwd().get(jochen));  
     // => pizza
 
 println!("Who owns the stick? {:?}", inventory.bwd().get(stick));
@@ -87,9 +87,11 @@ println!("Jochen's items: {:?}", inventory.fwd().get(jochen));
 
 `moogle` provides eight data structures. Each one represents a different table type that you might expect to see in a relational database, and each provides natural type-safe Rust interface.
 
-The fundamental data structure is `Pom`, a table type. `Pom` is a container whose only purpose is to store things -- adding something to a `Pom` assigns it an `Id` (an opaque integer value) you can use to fetch it again. These integer values satisfy the `IdLike` trait, which most other `moogle` data structures require.
+The fundamental data structure is `Pom`, a table type. `Pom` is a container whose only purpose is to store things -- adding something to a `Pom` assigns it an `Id` (an opaque integer value) you can use to fetch it again. 
 
-In addition to that, it provides tabular representations of three familiar data structures:
+These `Id` values satisfy the `IdLike` trait, which most other `moogle` data structures require. They're ordered such that newer elements have greater `Id`s.
+
+In addition to that, `moogle` provides tabular representations of three familiar data structures:
 
 - `ToOne` and `ToMany`: unidirectional map types analogous to `Map<K, V>` and `Map<K, Set<V>>` respectively
 - `Set`: a generic sorted set type analogous to `BTreeSet<K>`
@@ -136,6 +138,12 @@ All `moogle` data structures come with a separate `Raw` version -- this version 
 
 (Unfortunately, for `Pom`, the raw representation is very different for performance reasons, and no such borrow is possible.)
 
+### Performance
+
+`moogle` data structures are implemented as thin wrappers over `BTreeMap` and `BTreeSet`.
+
+However, to limit the number of allocations, `moogle` does not use nested collections. For instance, `BTreeMap<K, BTreeSet<V>>` is represented as `(BTreeSet<K>, BTreeSet<(K, V)>)`.
+
 ### Symmetry
 
 `moogle` junctions (`OneToOne`, `OneToMany`, `ManyToOne`, and `ManyToMany`) have the extra property of symmetry. 
@@ -181,7 +189,7 @@ In `moogle`, all of these operations are gated by `RefCell` for safety, then giv
 
 This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawManyToMany` etc instead of `ManyToMany` etc, which -- like most Rust data structures -- does not allow writes while iterators are in scope, and which will probably offer you a performance boost too. 
 
-The implementation is pretty reasonable but makes use of `unsafe` in about two places. (see the `Formally` section for details) Unsafe code is fuzzed for safety.
+The implementation is pretty reasonable (making direct use of the underlying `Raw` types) but it uses `unsafe` to cache iterator references when the underlying data is not changed. Unsafe code is fuzzed for safety.
 
 For a quick demo of the passage rule, see the below:
 
@@ -211,9 +219,9 @@ For a quick demo of the held set rule:
 ```rust
     let possessions: OneToMany<Ghost, Item> = OneToMany::new();
     let sylvian_possessions = possessions.fwd().get(sylvian);
-    println!("{:?}", sylvian_possessions.get());  // nothing
+    println!("{:?}", sylvian_possessions);  // nothing
     possessions.fwd().insert(sylvian, plush)
-    println!("{:?}", sylvian_possessions.get());  // {plush}
+    println!("{:?}", sylvian_possessions);  // {plush}
     sylvian_possessions.insert(fangs);
     possessions.iter(); // {(sylvian, plush), (sylvian, fangs)}
 ```
