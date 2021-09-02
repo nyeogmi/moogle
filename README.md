@@ -87,7 +87,7 @@ println!("Jochen's items: {:?}", inventory.fwd().get(jochen));
 
 `moogle` provides eight data structures. Each one represents a different table type that you might expect to see in a relational database, and each provides natural type-safe Rust interface.
 
-The fundamental data structure in `Pom`, a table type. `Pom` is a container whose only purpose is to store things -- adding something to a `Pom` assigns it an `Id` (an opaque integer value) you can use to fetch it again. These integer values satisfy the `IdLike` trait, which most other `moogle` data structures require.
+The fundamental data structure is `Pom`, a table type. `Pom` is a container whose only purpose is to store things -- adding something to a `Pom` assigns it an `Id` (an opaque integer value) you can use to fetch it again. These integer values satisfy the `IdLike` trait, which most other `moogle` data structures require.
 
 In addition to that, it provides tabular representations of three familiar data structures:
 
@@ -101,7 +101,7 @@ It provides four types implemented in terms of these, called junctions, represen
 - `ManyToOne<A, B>`: `Map<A, B>` and `Map<B, Set<A>>`
 - `ManyToMany<A, B>`: `Map<A, Set<B>>` and `Map<B, Set<A>>`
 
-You can figure out which relationship you need by thinking about how many items from set B each item from set A can be associated with, and vice versa in the other direction.
+You can figure out which relationship you need by thinking about how many items from set B each item from set A can be associated with, and vice versa.
 
 For instance, here's an example of each relationship, as applied to vampire bats:
 
@@ -179,9 +179,9 @@ In `moogle`, all of these operations are gated by `RefCell` for safety, then giv
 - If an iterator has passed an element Ord-wise, then it can't observe changes to that element. Otherwise, it can.
 - The only interior data structure you're allowed to hold a pointer to is a `FwdSet`/`BwdSet`, and it sees all changes made to the underlying store as soon as they happen.
 
-This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawManyToMany` etc instead of `ManyToMany` etc, which will make it impossible for it to affect you, and which will probably offer you a performance boost too. 
+This behavior is basically the same as the behavior of Redis `ZSCAN`. If this behavior spooks you out, you can use `RawManyToMany` etc instead of `ManyToMany` etc, which -- like most Rust data structures -- does not allow writes while iterators are in scope, and which will probably offer you a performance boost too. 
 
-The implementation is pretty sane but makes use of `unsafe` in about two places. (see the `Formally` section for details) Unsafe code is fuzzed for safety.
+The implementation is pretty reasonable but makes use of `unsafe` in about two places. (see the `Formally` section for details) Unsafe code is fuzzed for safety.
 
 For a quick demo of the passage rule, see the below:
 
