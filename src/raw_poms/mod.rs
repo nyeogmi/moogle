@@ -56,8 +56,4 @@ impl<T> RawPom<T> {
     pub fn values_mut<'a>(&'a mut self) -> impl 'a+DoubleEndedIterator<Item=&'a mut T> { 
         self.members.values_mut() 
     }
-
-    pub(crate) fn into_inner(&self) -> () {
-        todo!()
-    }
 }
