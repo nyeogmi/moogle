@@ -5,6 +5,8 @@ use crate::methods::{ViewSet, AnySet};
 
 use super::RawToOne;
 
+mod extra;
+
 // == Data structure ==
 #[derive(Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub struct RawSet<A: IdLike> {

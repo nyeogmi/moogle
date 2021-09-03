@@ -8,6 +8,8 @@ use crate::methods::{ViewAnyToOne, AnyToOne};
 
 use crate::iterators::BTreeMapIterator;
 
+mod extra;
+
 // == Data structure ==
 pub struct ToOne<A: IdLike, B: IdLike> {
     pub(in crate::shared_structures) raw: MoogCell<RawToOne<A, B>>
