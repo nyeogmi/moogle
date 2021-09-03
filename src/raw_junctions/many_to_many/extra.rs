@@ -134,6 +134,26 @@ impl<'a, A: IdLike, B: IdLike> Eq for MFwd<'a, A, B> {
 
 }
 
+impl<'a, A: IdLike, B: IdLike> IntoIterator for MFwd<'a, A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.fwd.iter()
+    }
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a MFwd<'a, A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 // == forward (immut) == 
 impl<'a, A: IdLike, B: IdLike> Hash for VFwd<'a, A, B> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -161,6 +181,26 @@ impl<'a, A: IdLike, B: IdLike> PartialOrd<VFwd<'a, A, B>> for VFwd<'a, A, B> {
 
 impl<'a, A: IdLike, B: IdLike> Eq for VFwd<'a, A, B> {
 
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for VFwd<'a, A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.fwd.iter()
+    }
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a VFwd<'a, A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }
 
 // == backward (mut) == 
@@ -208,6 +248,26 @@ impl<'a, A: IdLike, B: IdLike> Eq for MBwd<'a, A, B> {
 
 }
 
+impl<'a, A: IdLike, B: IdLike> IntoIterator for MBwd<'a, A, B> {
+    type Item = (B, A);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(B, A)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.bwd.iter()
+    }
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a MBwd<'a, A, B> {
+    type Item = (B, A);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(B, A)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 // == backward (immut) == 
 impl<'a, A: IdLike, B: IdLike> Hash for VBwd<'a, A, B> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -235,4 +295,24 @@ impl<'a, A: IdLike, B: IdLike> PartialOrd<VBwd<'a, A, B>> for VBwd<'a, A, B> {
 
 impl<'a, A: IdLike, B: IdLike> Eq for VBwd<'a, A, B> {
 
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for VBwd<'a, A, B> {
+    type Item = (B, A);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(B, A)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.bwd.iter()
+    }
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a VBwd<'a, A, B> {
+    type Item = (B, A);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(B, A)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }

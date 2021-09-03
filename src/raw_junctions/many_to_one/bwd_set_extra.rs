@@ -45,6 +45,16 @@ impl <'a, A: IdLike, B: IdLike> Eq for MBwdSet<'a, A, B> {
 
 }
 
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a MBwdSet<'a, A, B> {
+    type Item = A;
+
+    type IntoIter = impl DoubleEndedIterator<Item=A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
 // == forward (set) ==
 impl <'a, A: IdLike, B: IdLike> Hash for VBwdSet<'a, A, B> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -72,4 +82,14 @@ impl <'a, A: IdLike, B: IdLike> PartialOrd<VBwdSet<'a, A, B>> for VBwdSet<'a, A,
 
 impl <'a, A: IdLike, B: IdLike> Eq for VBwdSet<'a, A, B> {
 
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a VBwdSet<'a, A, B> {
+    type Item = A;
+
+    type IntoIter = impl DoubleEndedIterator<Item=A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
 }

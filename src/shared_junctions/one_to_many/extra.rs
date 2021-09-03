@@ -73,6 +73,16 @@ impl<'a, A: IdLike, B: IdLike> SharedExtend<(A, B)> for Fwd<'a, A, B> {
     }
 }
 
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a Fwd<'a, A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 // == backward == 
 impl<'a, 'b, A: IdLike, B: IdLike> SharedExtend<(&'b B, &'b A)> for Bwd<'a, A, B> {
     fn extend<T: IntoIterator<Item = (&'b B, &'b A)>>(&self, iter: T) {
@@ -87,5 +97,15 @@ impl<'a, A: IdLike, B: IdLike> SharedExtend<(B, A)> for Bwd<'a, A, B> {
         for (b, a) in iter {
             self.insert(b, a);
         }
+    }
+}
+
+impl<'a, A: IdLike, B: IdLike> IntoIterator for &'a Bwd<'a, A, B> {
+    type Item = (B, A);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(B, A)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }

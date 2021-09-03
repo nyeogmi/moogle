@@ -14,7 +14,6 @@ Medium:
 - Don't allocate in the ToMany impl of Serde
 - Support miri
 - Integration testing
-- IntoIterator for junction views
 - Add `arr[x]` syntax for all builtin junctions.
 - The other traits et cetera from BTreeMap and BTreeSet
 
