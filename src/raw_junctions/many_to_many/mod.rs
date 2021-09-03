@@ -1,3 +1,7 @@
+mod extra;
+mod bwd_set_extra;
+mod fwd_set_extra;
+
 use crate::id::IdLike;
 
 use crate::methods::{ViewAnyToMany, AnyToMany};
@@ -8,6 +12,7 @@ use crate::internal_structures::{ToMany, VSet, MSet};
 use std::collections::BTreeSet;
 
 // == Data structure ==
+#[derive(Clone)]
 pub struct RawManyToMany<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToMany<A, B>,
     pub(crate) bwd: ToMany<B, A>,

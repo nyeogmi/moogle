@@ -11,6 +11,11 @@ impl<T> MoogCell<T> {
         MoogCell { state: Cell::new(1), inner: RefCell::new(value) }
     }
 
+    pub fn into_inner(self) -> T {
+        return self.inner.into_inner()
+    }
+
+
     fn mark_dirty(&self) {
         // TODO: Bounds check this?
         self.state.replace(self.state.get() + 1);

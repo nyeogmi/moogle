@@ -7,6 +7,7 @@ mod debug_impl;
 #[cfg(feature="serde1")]
 mod serde_impl;
 
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub struct RawPom<T> { 
     next_id: u64,
     pub(crate) members: BTreeMap<Id<T>, T>

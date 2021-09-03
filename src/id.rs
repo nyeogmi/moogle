@@ -1,6 +1,7 @@
+use std::hash::Hash;
 use std::marker::PhantomData;
 
-pub trait IdLike: Copy+Ord+PartialEq+'static {
+pub trait IdLike: Copy+Hash+Ord+PartialEq+'static {
     // named to avoid stepping on other libraries etc
     fn id_min_value() -> Self;
     fn id_max_value() -> Self;
@@ -80,6 +81,12 @@ impl<T> Copy for Id<T> {
 impl<T> std::fmt::Debug for Id<T> {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> { 
         fmt.debug_tuple(std::any::type_name::<T>()).field(&self.0).finish()
+    }
+}
+
+impl<T> Hash for Id<T> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
     }
 }
 

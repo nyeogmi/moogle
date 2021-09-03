@@ -1,3 +1,5 @@
+mod extra;
+
 use crate::id::IdLike;
 
 use crate::methods::{ViewAnyToOne, AnyToOne};
@@ -5,6 +7,7 @@ use crate::methods::{ViewAnyToOne, AnyToOne};
 use crate::internal_structures::{ToOne};
 
 // == Data structure ==
+#[derive(Clone)]
 pub struct RawOneToOne<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToOne<A, B>,
     pub(crate) bwd: ToOne<B, A>,

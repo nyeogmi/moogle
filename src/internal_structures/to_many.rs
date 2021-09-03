@@ -5,15 +5,47 @@ use std::collections::BTreeSet;
 use std::collections::BTreeMap;
 use std::collections::btree_set;
 use std::collections::btree_map;
+use std::hash::{Hash, Hasher};
 use std::ops::RangeBounds;
 
+#[derive(Clone)]
 pub(crate) struct ToMany<K, V> {
     keys: BTreeMap<K, Metadata>,
     elements: BTreeSet<(K, V)>,
 }
 
+#[derive(Clone)]
 pub(crate) struct Metadata {
     count: usize,
+}
+
+
+impl<K: PartialEq<K>, V: PartialEq<V>> PartialEq for ToMany<K, V> {
+    fn eq(&self, other: &Self) -> bool {
+        self.elements == other.elements
+    }
+}
+
+impl<K: Ord, V: Ord> PartialOrd<ToMany<K, V>> for ToMany<K, V> {
+    fn partial_cmp(&self, other: &ToMany<K, V>) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<K: Hash, V: Hash> Hash for ToMany<K, V> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.elements.hash(state);
+    }
+}
+
+impl<K: Eq, V: Eq> Eq for ToMany<K, V> {
+
+}
+
+impl<K: Ord, V: Ord> Ord for ToMany<K, V> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.elements.cmp(&other.elements)
+    }
 }
 
 
@@ -173,5 +205,16 @@ impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for MSet<'a, K, V> {
 impl<'a, K: IdLike, V: IdLike+std::fmt::Debug> std::fmt::Debug for VSet<'a, K, V> {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> { 
         fmt.debug_set().entries(self.iter()).finish()
+    }
+}
+
+// == Standard traits ==
+impl<A: IdLike, B: IdLike> IntoIterator for ToMany<A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.elements.into_iter()
     }
 }
