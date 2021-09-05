@@ -7,6 +7,9 @@ mod debug_impl;
 #[cfg(feature="serde1")]
 mod serde_impl;
 
+mod extra;
+
+#[derive(Clone)]
 pub struct Pom<T: 'static> { 
     index: Set<Id<T>>,
     elements: RawPom<T>,

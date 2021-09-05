@@ -3,6 +3,7 @@ use crate::methods::{EvictSet, ViewSet};
 
 use std::collections::BTreeMap;
 
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub(crate) struct ToOne<K: IdLike, V: IdLike>(pub(crate) BTreeMap<K, V>);
 
 impl<K: IdLike, V: IdLike> ToOne<K, V> {
@@ -121,5 +122,16 @@ impl<'a, K: IdLike, V: IdLike> ViewSet<'a, V> for MOne<'a, K, V> {
 
     fn iter(&'a self) -> Self::Iter { 
         self.1.0.get(&self.0).map(|x| *x).into_iter()
+    }
+}
+
+// == Standard traits ==
+impl<A: IdLike, B: IdLike> IntoIterator for ToOne<A, B> {
+    type Item = (A, B);
+
+    type IntoIter = impl DoubleEndedIterator<Item=(A, B)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }

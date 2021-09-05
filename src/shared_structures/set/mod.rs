@@ -8,6 +8,8 @@ use crate::methods::{ViewSet, AnySet};
 
 use crate::iterators::{BTreeMapIterator};
 
+mod extra;
+
 // == Data structure ==
 pub struct Set<A: IdLike> {
     pub(in crate::shared_structures) raw: MoogCell<RawSet<A>>

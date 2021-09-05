@@ -4,7 +4,10 @@ use crate::methods::{ViewAnyToOne, AnyToOne};
 
 use crate::internal_structures::{ToOne};
 
+mod extra;
+
 // == Data structure ==
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub struct RawToOne<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToOne<A, B>,
 }

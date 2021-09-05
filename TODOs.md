@@ -3,19 +3,17 @@
 
 Small:
 
-- Mention that Poms generate auto-incrementing Ids
 - Unit test NUMBER OF KEYS PER SET (not just "overall count") 
   (I just rewrote this)
-- Make documentation reflect that data structures and poms are available
 - Relax the lifetime constraints involving raw junctions. (Should be possible now that the vset implementation is changed.)
 - Proptest lexicographic order
 
 Medium:
 
+- More operations for poms and data structures too
 - Don't allocate in the ToMany impl of Serde
 - Support miri
 - Integration testing
-- IntoIterator for &T for all builtin `.iter()`-providing Ts.
 - Add `arr[x]` syntax for all builtin junctions.
 - The other traits et cetera from BTreeMap and BTreeSet
 

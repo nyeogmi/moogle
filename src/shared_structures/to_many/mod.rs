@@ -11,6 +11,8 @@ use std::collections::BTreeSet;
 
 use crate::iterators::{ToManyKeysIterator, ToManyKeyValueIterator};
 
+mod extra;
+
 // == Data structure ==
 pub struct ToMany<A: IdLike, B: IdLike> {
     pub(in crate::shared_structures) raw: MoogCell<RawToMany<A, B>>

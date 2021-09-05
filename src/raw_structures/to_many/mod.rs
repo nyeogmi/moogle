@@ -7,7 +7,10 @@ use crate::internal_structures::{ToMany, VSet, MSet};
 
 use std::collections::BTreeSet;
 
+mod extra;
+
 // == Data structure ==
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub struct RawToMany<A: IdLike, B: IdLike> {
     pub(crate) fwd: ToMany<A, B>,
 }
