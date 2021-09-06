@@ -60,6 +60,21 @@ impl IdLike for i8 {
     #[inline] fn id_max_value() -> Self { Self::max_value() }
 }
 
+impl<T1: IdLike, T2: IdLike> IdLike for (T1, T2) {
+    fn id_min_value() -> Self { (T1::id_min_value(), T2::id_min_value()) }
+    fn id_max_value() -> Self { (T1::id_max_value(), T2::id_max_value()) }
+}
+
+impl<T1: IdLike, T2: IdLike, T3: IdLike> IdLike for (T1, T2, T3) {
+    fn id_min_value() -> Self { (T1::id_min_value(), T2::id_min_value(), T3::id_min_value()) }
+    fn id_max_value() -> Self { (T1::id_max_value(), T2::id_max_value(), T3::id_max_value()) }
+}
+
+impl<T1: IdLike, T2: IdLike, T3: IdLike, T4: IdLike> IdLike for (T1, T2, T3, T4) {
+    fn id_min_value() -> Self { (T1::id_min_value(), T2::id_min_value(), T3::id_min_value(), T4::id_min_value()) }
+    fn id_max_value() -> Self { (T1::id_max_value(), T2::id_max_value(), T3::id_max_value(), T4::id_max_value()) }
+}
+
 // internal ID type, use if you have nothing else!!
 pub struct Id<T>(pub(crate) u64, PhantomData<*const T>);
 
