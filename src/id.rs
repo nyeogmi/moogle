@@ -83,6 +83,9 @@ impl<T> Id<T> {
         Id(val, PhantomData)
     }
 
+    pub fn get_value(&self) -> u64 {
+        return self.0
+    }
 }
 
 impl<T> Clone for Id<T> {
