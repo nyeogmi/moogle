@@ -46,10 +46,12 @@ pub use shared_structures::ToMany;
 
 // == poms ==
 pub mod raw_poms;
+pub mod floating_poms;
 mod shared_poms;
 pub mod poms { pub use crate::shared_poms::*; }
 
 pub use raw_poms::RawPom;
+pub use floating_poms::{Floating, FloatingPom};
 pub use shared_poms::Pom;
 
 // == misc ==

@@ -19,4 +19,5 @@ mod shared_junctions;
 mod shared_structures;
 
 mod raw_poms;
+mod floating_poms;
 mod shared_poms;

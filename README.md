@@ -112,6 +112,8 @@ For instance, here's an example of each relationship, as applied to vampire bats
 - Each bat has one cave. (and no more) Each cave belongs to many bats. (`ManyToOne<Bat, Cave>`)
 - Each bat has many victims. Each victim belongs to many bats. (`ManyToMany<Bat, Victim>`)
 
+Moogle additionally provides one extra specialization of `Pom`, called `FloatingPom`. It allocates once per element, which is not performant, but its entire interface can be used from an immutable ref, making it far easier to use.
+
 ## What properties do Moogle data structures have?
 
 `moogle` data structures are designed around sacrificing performance to provide a simpler API or achieve greater consistency. Below is a quick summary of the design decisions `moogle` makes:
@@ -143,6 +145,8 @@ All `moogle` data structures come with a separate `Raw` version -- this version 
 `moogle` data structures are implemented as thin wrappers over `BTreeMap` and `BTreeSet`.
 
 However, to limit the number of allocations, `moogle` does not use nested collections. For instance, `BTreeMap<K, BTreeSet<V>>` is represented as `(BTreeSet<K>, BTreeSet<(K, V)>)`.
+
+One `moogle` data structure (`FloatingPom`) internally uses `Rc` and `RefCell`, because there's no other way to allow `insert()`s and `remove()`s at arbitrary times without potentially invalidating held refs.
 
 ### Symmetry
 
