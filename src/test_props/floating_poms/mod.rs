@@ -4,7 +4,6 @@
 // This lets you spot-check what each bimap has
 mod fixture;
 mod properties;
-use crate::Floating;
 use crate::FloatingPom as T;
 use crate::Id;
 
@@ -30,7 +29,7 @@ impl crate::FloatingPom<String> {
     fn prepare_unshared(&mut self, ops: &[UnsharedOp], ids: &mut VecDeque<Id<String>>) {
         for op in ops {
             match op {
-                UnsharedOp::Insert(s) => { ids.push_back(self.insert(Floating::new(s.clone()))); }
+                UnsharedOp::Insert(s) => { ids.push_back(self.insert(s.clone())); }
                 UnsharedOp::Remove => {
                     let id = ids.pop_front();
                     match id {

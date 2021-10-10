@@ -19,7 +19,7 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for FloatingPom<T> {
     }
 }
 
-impl<T: Serialize> Serialize for Floating<T> {
+impl<T: Serialize> Serialize for Floating<'static, T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer {
@@ -27,7 +27,7 @@ impl<T: Serialize> Serialize for Floating<T> {
     }
 }
 
-impl<'de, T: Deserialize<'de>> Deserialize<'de> for Floating<T> {
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for Floating<'static, T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de> {

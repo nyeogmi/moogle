@@ -3,23 +3,25 @@ use std::fmt::Debug;
 
 use crate::Id;
 
-pub(super) fn cast_plain<T>(id: Id<Floating<T>>) -> Id<T> {
+pub(super) fn cast_plain<'a, T>(id: Id<Floating<'a, T>>) -> Id<T> {
     Id(id.0, PhantomData)
 }
 
-pub(super) fn cast_refcell<T>(id: Id<T>) -> Id<Floating<T>> {
+pub(super) fn cast_refcell<'a, T>(id: Id<T>) -> Id<Floating<'a, T>> {
     Id(id.0, PhantomData)
 }
 
 
 // the below is an implementation of a big subset of the RefCell interface
 // this attempts to hide the implementation detail of Rc
+// it's approximately the same as &'a RefCell<T>
 
-pub struct Floating<T>(Rc<RefCell<T>>);
+pub struct Floating<'a, T>(Rc<RefCell<T>>, PhantomData<&'a ()>);
 
-impl<T> Floating<T> {
-    pub fn new(value: T) -> Floating<T> {
-        Floating(Rc::new(RefCell::new(value)))
+impl<'a, T> Floating<'a, T> {
+    // callers shouldn't ever need to do this, only the floating pom code
+    pub(crate) fn new(value: T) -> Floating<'static, T> {
+        Floating(Rc::new(RefCell::new(value)), PhantomData)
     }
 
     pub fn replace(&self, value: T) -> T {
@@ -50,23 +52,23 @@ impl<T> Floating<T> {
         self.0.try_borrow_mut()
     }
 
-    pub(crate) fn internal_share(&self) -> Floating<T> {
+    pub(crate) fn internal_share(&self) -> Floating<'a, T> {
         // Shares the Rc
         // Because we provide this, we must assume that many references to the same Floating can exist
         // However, because it's limited to the crate, the general public may not use it
         let it: Rc<RefCell<T>> = self.0.clone();
-        return Self(it)
+        return Self(it, PhantomData)
     }
 }
 
-impl<T: Clone> Clone for Floating<T> {
+impl<T: Clone> Clone for Floating<'static, T> {
     fn clone(&self) -> Self {
         let ref_cell: &RefCell<T> = self.0.as_ref();
-        Self(Rc::new(ref_cell.clone()))
+        Self(Rc::new(ref_cell.clone()), PhantomData)
     }
 }
 
-impl<T: Debug> Debug for Floating<T> {
+impl<'a, T: Debug> Debug for Floating<'a, T> {
     // borrowed from the RefCell implementation
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self.try_borrow() {
@@ -88,16 +90,10 @@ impl<T: Debug> Debug for Floating<T> {
     }
 }
 
-impl<T: Default> Default for Floating<T> {
-    fn default() -> Self {
-        Self::new(T::default())
-    }
+impl<'a, T: Eq> Eq for Floating<'a, T> {
 }
 
-impl<T: Eq> Eq for Floating<T> {
-}
-
-impl<T: Ord> Ord for Floating<T> {
+impl<'a, T: Ord> Ord for Floating<'a, T> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let x1: &RefCell<T> = &*self.0;
         let x2: &RefCell<T> = &*other.0;
@@ -105,7 +101,7 @@ impl<T: Ord> Ord for Floating<T> {
     }
 }
 
-impl<T: PartialEq> PartialEq<Floating<T>> for Floating<T> {
+impl<'a, T: PartialEq> PartialEq<Floating<'a, T>> for Floating<'a, T> {
     fn eq(&self, other: &Floating<T>) -> bool {
         let x1: &RefCell<T> = &*self.0;
         let x2: &RefCell<T> = &*other.0;
@@ -113,7 +109,7 @@ impl<T: PartialEq> PartialEq<Floating<T>> for Floating<T> {
     }
 }
 
-impl<T: PartialOrd> PartialOrd<Floating<T>> for Floating<T> {
+impl<'a, T: PartialOrd> PartialOrd<Floating<'a, T>> for Floating<'a, T> {
     fn partial_cmp(&self, other: &Floating<T>) -> Option<std::cmp::Ordering> {
         let x1: &RefCell<T> = &*self.0;
         let x2: &RefCell<T> = &*other.0;
