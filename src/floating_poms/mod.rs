@@ -35,12 +35,12 @@ impl<T: 'static> FloatingPom<T> {
         FloatingPom { index, elements: RefCell::new(elements) }
     }
 
-    pub fn insert(&mut self, t: T) -> Id<T> { 
+    pub fn insert(&self, t: T) -> Id<T> { 
         let id = cast_plain(self.elements.borrow_mut().insert(Floating::new(t)));
         self.index.fwd().insert(id);
         id
     }
-    pub fn remove(&mut self, k: Id<T>) { 
+    pub fn remove(&self, k: Id<T>) { 
         self.index.fwd().remove(k);
         self.elements.borrow_mut().remove(cast_refcell(k));
     }
@@ -71,6 +71,6 @@ impl<T: 'static> FloatingPom<T> {
     }
 
     pub fn values<'a>(&'a self) -> impl 'a+DoubleEndedIterator<Item=Floating<'a, T>> {
-        self.iter().map(|(k, v)| v)
+        self.iter().map(|(_, v)| v)
     }
 }
