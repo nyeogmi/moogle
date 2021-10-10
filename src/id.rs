@@ -76,7 +76,7 @@ impl<T1: IdLike, T2: IdLike, T3: IdLike, T4: IdLike> IdLike for (T1, T2, T3, T4)
 }
 
 // internal ID type, use if you have nothing else!!
-pub struct Id<T>(pub(crate) u64, PhantomData<*const T>);
+pub struct Id<T>(pub(crate) u64, pub(crate) PhantomData<*const T>);
 
 impl<T> Id<T> {
     pub(crate) fn new(val: u64) -> Self {
